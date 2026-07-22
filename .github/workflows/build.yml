@@ -231,3 +231,9 @@ jobs:
           git diff --cached --quiet && echo "latest.json 无变化" && exit 0
           git commit -m "chore(updater): latest.json → ${{ inputs.release_tag }}"
           git push
+
+      - name: Attach latest.json to the updates release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: updates
+          files: latest.json
