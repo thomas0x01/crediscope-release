@@ -15,7 +15,32 @@ on:
         required: true
 
 jobs:
+  # 测试门禁：全量 pytest（含冻结模拟 L0）不过则不构建，
+  # 防"忘了跑测试"——回归测试不靠记忆生效
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout private source
+        uses: actions/checkout@v4
+        with:
+          repository: thomas0x01/crediscope-llm
+          ref: ${{ inputs.source_ref }}
+          token: ${{ secrets.BUILD_PAT }}
+          path: src
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r src/crediscope-llm/requirements.txt
+
+      - name: Run tests
+        working-directory: src/crediscope-llm
+        run: python -m pytest tests -q
+
   build-macos:
+    needs: test
     runs-on: macos-latest
     permissions:
       contents: write
@@ -82,6 +107,7 @@ jobs:
           files: src/desktop/src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg
 
   build-windows:
+    needs: test
     runs-on: windows-latest
     permissions:
       contents: write
