@@ -106,7 +106,17 @@ jobs:
           # 发布卫生（见私有仓 AGENTS.md）：带后缀的 tag（test/beta/rc）标 prerelease
           prerelease: ${{ contains(inputs.release_tag, '-') }}
           generate_release_notes: true
-          files: src/desktop/src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg
+          files: |
+            src/desktop/src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg
+            src/desktop/src-tauri/target/aarch64-apple-darwin/release/bundle/macos/*.app.tar.gz
+            src/desktop/src-tauri/target/aarch64-apple-darwin/release/bundle/macos/*.app.tar.gz.sig
+
+      - name: Upload updater signatures (macOS)
+        uses: actions/upload-artifact@v4
+        with:
+          name: updater-sig-macos
+          path: src/desktop/src-tauri/target/aarch64-apple-darwin/release/bundle/macos/*.app.tar.gz.sig
+          retention-days: 1
 
   build-windows:
     needs: test
@@ -178,3 +188,47 @@ jobs:
           files: |
             src/desktop/src-tauri/target/release/bundle/msi/*.msi
             src/desktop/src-tauri/target/release/bundle/nsis/*.exe
+            src/desktop/src-tauri/target/release/bundle/nsis/*.nsis.zip
+            src/desktop/src-tauri/target/release/bundle/nsis/*.nsis.zip.sig
+
+      - name: Upload updater signatures (Windows)
+        uses: actions/upload-artifact@v4
+        with:
+          name: updater-sig-windows
+          path: src/desktop/src-tauri/target/release/bundle/nsis/*.nsis.zip.sig
+          retention-days: 1
+
+  # 生成 Tauri updater 更新清单并提交到本仓（endpoint 指向 latest.json）
+  publish-manifest:
+    needs: [build-macos, build-windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Checkout private source (for gen script)
+        uses: actions/checkout@v4
+        with:
+          repository: thomas0x01/crediscope-llm
+          ref: ${{ inputs.source_ref }}
+          token: ${{ secrets.BUILD_PAT }}
+          path: src
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: updater-sig-*
+          path: updater_artifacts
+          merge-multiple: true
+
+      - name: Generate latest.json
+        run: python3 src/desktop/scripts/gen_latest_json.py --repo thomas0x01/crediscope-release --tag "${{ inputs.release_tag }}" --assets-dir updater_artifacts --out latest.json
+
+      - name: Commit latest.json
+        run: |
+          git config user.name "crediscope-bot"
+          git config user.email "bot@crediscope.local"
+          git add latest.json
+          git diff --cached --quiet && echo "latest.json 无变化" && exit 0
+          git commit -m "chore(updater): latest.json → ${{ inputs.release_tag }}"
+          git push
