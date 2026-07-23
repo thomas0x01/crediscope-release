@@ -13,6 +13,10 @@ on:
       release_tag:
         description: '本仓库 release 的 tag（如 v0.1.0-test.16）'
         required: true
+      notes:
+        description: '下载页更新说明（;分隔多条，可空）'
+        required: false
+        default: ''
 
 jobs:
   # 测试门禁：全量 pytest（含冻结模拟 L0）不过则不构建，
