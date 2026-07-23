@@ -237,3 +237,32 @@ jobs:
         with:
           tag_name: updates
           files: latest.json
+
+      # ── 境内分发：rsync 制品 + 下载页到腾讯轻量云（CF 回源） ──
+      - name: Download release artifacts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p dist_artifacts
+          gh release download "${{ inputs.release_tag }}" \
+            -R thomas0x01/crediscope-release -D dist_artifacts \
+            -p "*.dmg" -p "*.exe" -p "*.msi" -p "*.tar.gz" -p "*.sig"
+
+      - name: Generate download page
+        run: python3 src/desktop/scripts/gen_release_page.py \
+          --tag "${{ inputs.release_tag }}" \
+          --base-url "https://dl.thomas0x00.uk/releases/${{ inputs.release_tag }}" \
+          --notes "${{ inputs.notes || '见提交记录' }}" \
+          --out dist_page
+
+      - name: Rsync to download server
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          echo "$DEPLOY_KEY" > ~/.ssh/deploy && chmod 600 ~/.ssh/deploy
+          SSH="ssh -i ~/.ssh/deploy -o StrictHostKeyChecking=accept-new -o BatchMode=yes"
+          rsync -az -e "$SSH" dist_artifacts/ ubuntu@123.207.45.137:/var/www/downloads/releases/${{ inputs.release_tag }}/
+          rsync -az -e "$SSH" dist_page/index.html dist_page/logo.png dist_page/feishu-qr.png ubuntu@123.207.45.137:/var/www/downloads/
+          rsync -az -e "$SSH" latest.json ubuntu@123.207.45.137:/var/www/downloads/latest.json
+          rm -f ~/.ssh/deploy
