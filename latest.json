@@ -1,15 +1,15 @@
 {
-  "version": "0.1.1",
-  "notes": "Crediscope LLM 0.1.1",
-  "pub_date": "2026-07-23T08:20:21.739614+00:00",
+  "version": "0.1.2",
+  "notes": "Crediscope LLM 0.1.2",
+  "pub_date": "2026-07-23T10:04:51.733281+00:00",
   "platforms": {
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjNiSmFvZFBTemZETW9GeENISkNZT0pZOXpKZmFJWk5OZXlXK0FOaVZFQXNkUDdxZHJwOUtsQUNEZVN5WU51c0FPVmFsN2NybFNsSnBBSVZBMEdlVEEwPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg0Nzk0NTMyCWZpbGU6Q3JlZGlzY29wZSBMTE0uYXBwLnRhci5negpEdjY4QUpuVDZ5VUN5WThXQWI5OHB0b3Y0THY4ejVPdlNEZU45ZVFjYXI1bW56Rnd4Z0k0Q3Bad01UUkcwNEliQjJZbGROSU5xa3ZYQzQ0eVdEOG9EZz09Cg==",
-      "url": "https://github.com/thomas0x01/crediscope-release/releases/download/v0.1.1/Crediscope.LLM.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybnhESXRqKzlWOGpnSldrdHhOZW5ma1loZytiSjZxZG9RT1N4aDVDTTZVWERqOGcyVFhibEpQMDE2UE5Md0padHIwQ0J2V0NCZytYVXp4VHB0eGdXcHdVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg0ODAwNzIwCWZpbGU6Q3JlZGlzY29wZSBMTE0uYXBwLnRhci5negpLMmJUYXJ5amFtVnZQZjRvcXhCcTBpWGVManN5enJEWEJZNTdpaHZoVVJ3bm5yUzk5bXNCSzFKbDB4QVZWSlJHRHI4bCt2WjlUVkxLaCt1TnRFc09BZz09Cg==",
+      "url": "https://github.com/thomas0x01/crediscope-release/releases/download/v0.1.2/Crediscope.LLM.app.tar.gz"
     },
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjhxRXNIV3NSYnNmSnF2YXNlVmJqdFVKYjJhaHRvd2VUeUpjY1dNMHNDQ2tmNzV3UTBZZDdZSUQyL1gxbDVvaGJzWmxkWE5YS2ZBdHZnU0hBYThMUlFZPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg0Nzk0Nzk4CWZpbGU6Q3JlZGlzY29wZSBMTE1fMC4xLjFfeDY0LXNldHVwLmV4ZQpYY29COWNEZGNKUHVDbkJ0TytoWjJiSlhuekZObmluWkhBSjNQcTdTQXE1TnQ0TDQ1QVZsQWVpK2twMUFLU3NkQnplMVJCbEJ5aENVemY0NitPM2JEdz09Cg==",
-      "url": "https://github.com/thomas0x01/crediscope-release/releases/download/v0.1.1/Crediscope.LLM_0.1.1_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjZkOEVpclppSjFOb2crVURVZStSSmMwM1RrSFNZaWRXeUxNRlQweFVkUlY0RWdpWWFmVXp3U2U4bThIZHN5TnZVOXo2dUJTOTJqWG9mV3YzOXpjT3dFPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg0ODAxMDc1CWZpbGU6Q3JlZGlzY29wZSBMTE1fMC4xLjJfeDY0LXNldHVwLmV4ZQpsSFF3NlVZUS9kNUVsa25FU3VCVVhHVDVRTFpJVG5aK1lzRDZFdXh5UkJRZWEyd2J6c0d3MTM5YlV5ZFh1V1FEOTc1RGJmckFTeTUvVVNhNk95TjdEUT09Cg==",
+      "url": "https://github.com/thomas0x01/crediscope-release/releases/download/v0.1.2/Crediscope.LLM_0.1.2_x64-setup.exe"
     }
   }
 }
