@@ -242,7 +242,7 @@ jobs:
           tag_name: updates
           files: latest.json
 
-      # ── 境内分发：rsync 制品 + 下载页到腾讯轻量云（CF 回源） ──
+      # ── 境内分发：S3 API 直传 R2（全链路不出 Cloudflare 网络） ──
       - name: Download release artifacts
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -259,14 +259,18 @@ jobs:
           --notes "${{ inputs.notes || '见提交记录' }}" \
           --out dist_page
 
-      - name: Rsync to download server
+      - name: Upload to R2
         env:
-          DEPLOY_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
         run: |
-          mkdir -p ~/.ssh && chmod 700 ~/.ssh
-          echo "$DEPLOY_KEY" > ~/.ssh/deploy && chmod 600 ~/.ssh/deploy
-          SSH="ssh -i ~/.ssh/deploy -o StrictHostKeyChecking=accept-new -o BatchMode=yes"
-          rsync -az -e "$SSH" dist_artifacts/ ubuntu@123.207.45.137:/var/www/downloads/releases/${{ inputs.release_tag }}/
-          rsync -az -e "$SSH" dist_page/index.html dist_page/logo.png dist_page/feishu-qr.png ubuntu@123.207.45.137:/var/www/downloads/
-          rsync -az -e "$SSH" latest.json ubuntu@123.207.45.137:/var/www/downloads/latest.json
-          rm -f ~/.ssh/deploy
+          export AWS_EC2_METADATA_DISABLED=true
+          EP="https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
+          aws s3 sync dist_artifacts/ "s3://${R2_BUCKET}/releases/${{ inputs.release_tag }}/" \
+            --endpoint-url "$EP" --no-progress
+          aws s3 cp dist_page/index.html "s3://${R2_BUCKET}/index.html" --endpoint-url "$EP"
+          aws s3 cp dist_page/logo.png "s3://${R2_BUCKET}/logo.png" --endpoint-url "$EP"
+          aws s3 cp dist_page/feishu-qr.png "s3://${R2_BUCKET}/feishu-qr.png" --endpoint-url "$EP"
+          aws s3 cp latest.json "s3://${R2_BUCKET}/latest.json" --endpoint-url "$EP"
