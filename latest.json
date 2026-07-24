@@ -1,15 +1,15 @@
 {
   "version": "0.1.0-test.27",
   "notes": "· .doc 老格式模板正经提取（Word 二进制 piece table 解析），银行存量模板可直接上传\n· 模板分析在无 markdown 标题时自动补章节层级，统计不再为 0\n· 上传区恢复 .doc 支持说明",
-  "pub_date": "2026-07-24T10:56:29.660742+00:00",
+  "pub_date": "2026-07-24T11:17:35.277778+00:00",
   "platforms": {
     "darwin-aarch64": {
       "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjdIa3lENTNjVUVuaXAyQXFHeGVqdG14RDZYcGszMXdmZ012bFVraFZhZjVWdXdyUkE0Z2R3amVDZ3hLNFEzbjZxZ0tyaWZ1U0NUa3crSFprRW9GV3d3PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg0ODkwMjE0CWZpbGU6Q3JlZGlzY29wZSBMTE0uYXBwLnRhci5negpjMFNjVng4ZzBuRWR4bkdpREJDaTVrQWRIZE1WcU9wVE9nMEpGNXR4RURzS3ArRkhnY1RpMGx1UTJOUVZqZGIveUNRcGM0LzV3UERkV2paM3lkR0tDUT09Cg==",
-      "url": "https://github.com/thomas0x01/crediscope-release/releases/download/v0.1.0-test.27/Crediscope.LLM.app.tar.gz"
+      "url": "https://dl.thomas0x00.uk/releases/v0.1.0-test.27/Crediscope.LLM.app.tar.gz"
     },
     "windows-x86_64": {
       "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjF0c3ZFMkhscHNrQXRMYU1UQ3JWTTBJQ3h6Tjd1Q0lyRjJlYkFKMWp5eTBFdGloc2NBYVE1SW00a2hhQ1ZmazRnS2RSNngrUmR4U1djaFY1b3FhOUF3PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg0ODkwNTcwCWZpbGU6Q3JlZGlzY29wZSBMTE1fMC4xLjBfeDY0LXNldHVwLmV4ZQpNdy9yaHBpY1grSURpN05mN1dSRmNiV252eU1vbmx4blkrZzMyS0liRUwrdnY1S1ZmelZvVEIxcVZYV3lPRmpXcjlxNVVTbTcyN0p1cFZDQVZuMlFEUT09Cg==",
-      "url": "https://github.com/thomas0x01/crediscope-release/releases/download/v0.1.0-test.27/Crediscope.LLM_0.1.0_x64-setup.exe"
+      "url": "https://dl.thomas0x00.uk/releases/v0.1.0-test.27/Crediscope.LLM_0.1.0_x64-setup.exe"
     }
   }
 }
