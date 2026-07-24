@@ -229,7 +229,7 @@ jobs:
           merge-multiple: true
 
       - name: Generate latest.json
-        run: python3 src/desktop/scripts/gen_latest_json.py --repo thomas0x01/crediscope-release --tag "${{ inputs.release_tag }}" --assets-dir updater_artifacts --out latest.json
+        run: python3 src/desktop/scripts/gen_latest_json.py --repo thomas0x01/crediscope-release --tag "${{ inputs.release_tag }}" --assets-dir updater_artifacts --out latest.json --notes "${{ inputs.notes }}"
 
       - name: Commit latest.json
         run: |
