@@ -231,12 +231,17 @@ jobs:
       - name: Generate latest.json
         run: python3 src/desktop/scripts/gen_latest_json.py --repo thomas0x01/crediscope-release --tag "${{ inputs.release_tag }}" --assets-dir updater_artifacts --out latest.json --notes "${{ inputs.notes }}"
 
-      - name: Commit latest.json
+      # 下载页：正式构建主区用本次信息并回写 page_state.json；
+      # 测试构建主区保持 state 里的正式版，本次构建进内测区（发布卫生）
+      - name: Generate download page
+        run: python3 src/desktop/scripts/gen_release_page.py --release-tag "${{ inputs.release_tag }}" --notes "${{ inputs.notes }}" --pre-tag "${{ inputs.pre_tag }}" --state page_state.json --out dist_page
+
+      - name: Commit latest.json + page_state.json
         run: |
           git config user.name "crediscope-bot"
           git config user.email "bot@crediscope.local"
-          git add latest.json
-          git diff --cached --quiet && echo "latest.json 无变化" && exit 0
+          git add latest.json page_state.json
+          git diff --cached --quiet && echo "清单无变化" && exit 0
           git commit -m "chore(updater): latest.json → ${{ inputs.release_tag }}"
           git push
 
@@ -255,15 +260,6 @@ jobs:
           gh release download "${{ inputs.release_tag }}" \
             -R thomas0x01/crediscope-release -D dist_artifacts \
             -p "*.dmg" -p "*.exe" -p "*.msi" -p "*.tar.gz" -p "*.sig"
-
-      - name: Generate download page
-        run: |
-          python3 src/desktop/scripts/gen_release_page.py \
-            --tag "${{ inputs.release_tag }}" \
-            --base-url "https://dl.thomas0x00.uk/releases/${{ inputs.release_tag }}" \
-            --notes "${{ inputs.notes || '见提交记录' }}" \
-            --pre-tag "${{ inputs.pre_tag }}" \
-            --out dist_page
 
       - name: Upload to R2
         env:
