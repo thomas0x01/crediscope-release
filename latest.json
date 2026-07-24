@@ -1,15 +1,15 @@
 {
-  "version": "0.1.0-test.26",
-  "notes": "· 自定义模板修复：打包版可用且重启不丢，docx 表格正确提取\n· 反馈卡自动附带近期 API 错误现场\n· 更新流程两段式：下载后展示更新说明，手动重启安装\n· 下载页主区固定正式版（测试包不再顶掉）",
-  "pub_date": "2026-07-24T09:43:53.877395+00:00",
+  "version": "0.1.0-test.27",
+  "notes": "· .doc 老格式模板正经提取（Word 二进制 piece table 解析），银行存量模板可直接上传\n· 模板分析在无 markdown 标题时自动补章节层级，统计不再为 0\n· 上传区恢复 .doc 支持说明",
+  "pub_date": "2026-07-24T10:56:29.660742+00:00",
   "platforms": {
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjhNa29ZcHRpMDZjdWpDTVE3V1NjYWZzVG1LQXN0eEhiZ0pGdDB2U3F6elZtSTFkMk9YblVsSUFDZmFoUHRxTnJrYTNMVDJ3UWcrWlVVUnpNUU1tZ2djPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg0ODg1OTA4CWZpbGU6Q3JlZGlzY29wZSBMTE0uYXBwLnRhci5negpZMEljaEUvZk1ybW5GVmV2ODhYN3o5MVRsR1ZzbFc0SU9aWnJyb1Q3VXoycVNpdWh2NGVrNC91aHVKUXhJZWRDZnpiOGdTd2RidGhURDZNTXBQMG1BQT09Cg==",
-      "url": "https://github.com/thomas0x01/crediscope-release/releases/download/v0.1.0-test.26/Crediscope.LLM.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjdIa3lENTNjVUVuaXAyQXFHeGVqdG14RDZYcGszMXdmZ012bFVraFZhZjVWdXdyUkE0Z2R3amVDZ3hLNFEzbjZxZ0tyaWZ1U0NUa3crSFprRW9GV3d3PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg0ODkwMjE0CWZpbGU6Q3JlZGlzY29wZSBMTE0uYXBwLnRhci5negpjMFNjVng4ZzBuRWR4bkdpREJDaTVrQWRIZE1WcU9wVE9nMEpGNXR4RURzS3ArRkhnY1RpMGx1UTJOUVZqZGIveUNRcGM0LzV3UERkV2paM3lkR0tDUT09Cg==",
+      "url": "https://github.com/thomas0x01/crediscope-release/releases/download/v0.1.0-test.27/Crediscope.LLM.app.tar.gz"
     },
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjcvQlg3TkJOV2E5REEvaFJKYVRobjFlRzFTbkdVNDd6SVkwVnBxeE1GamtIMTRkUU9UWVpGZlZJaXllSDE5VkdRclZkR2k4TTZ4TlBjQnpYV1R3NGdNPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg0ODg2MjE0CWZpbGU6Q3JlZGlzY29wZSBMTE1fMC4xLjBfeDY0LXNldHVwLmV4ZQpMbkZIV0ExT09zWlBTODdkcHhiekJxNGszNlNqTTgrOHR5NHNldjlPakxOOFJCcWJ3T3FYL2ViS2VKQWUwcUFERXgvTHI0dGtoc1BhcWVHNnp3RVdEUT09Cg==",
-      "url": "https://github.com/thomas0x01/crediscope-release/releases/download/v0.1.0-test.26/Crediscope.LLM_0.1.0_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjF0c3ZFMkhscHNrQXRMYU1UQ3JWTTBJQ3h6Tjd1Q0lyRjJlYkFKMWp5eTBFdGloc2NBYVE1SW00a2hhQ1ZmazRnS2RSNngrUmR4U1djaFY1b3FhOUF3PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg0ODkwNTcwCWZpbGU6Q3JlZGlzY29wZSBMTE1fMC4xLjBfeDY0LXNldHVwLmV4ZQpNdy9yaHBpY1grSURpN05mN1dSRmNiV252eU1vbmx4blkrZzMyS0liRUwrdnY1S1ZmelZvVEIxcVZYV3lPRmpXcjlxNVVTbTcyN0p1cFZDQVZuMlFEUT09Cg==",
+      "url": "https://github.com/thomas0x01/crediscope-release/releases/download/v0.1.0-test.27/Crediscope.LLM_0.1.0_x64-setup.exe"
     }
   }
 }
