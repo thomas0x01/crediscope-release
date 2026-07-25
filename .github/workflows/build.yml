@@ -43,6 +43,10 @@ jobs:
       - name: Install dependencies
         run: pip install -r src/crediscope-llm/requirements.txt
 
+      - name: Install pdftotext (poppler)
+        # mock LLM 端到端（tests/e2e/test_mock_full_analysis.py）真实跑提取管线
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils
+
       - name: Run tests
         working-directory: src/crediscope-llm
         run: python -m pytest tests -q

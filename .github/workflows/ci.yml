@@ -1,0 +1,125 @@
+name: Source CI
+
+# 私有源码仓（thomas0x01/crediscope-llm）的 CI 承载——主仓 private 无
+# Actions 额度，其 .github/workflows 下的 CI / Desktop Release 已禁用。
+# 本 workflow 用只读 PAT checkout 主仓源码到 runner 跑测试，源码不进本仓。
+#
+# 触发方式：
+# - repository_dispatch（type: main-push）：主仓 ci-dispatch workflow 转发 push
+# - schedule：每天 02:37 UTC（10:37 北京）兜底跑 main
+# - workflow_dispatch：手动，可指定任意 ref
+# 跑完把红绿状态回写到主仓 commit（需 BUILD_PAT 有 repo:status 权限，
+# 没有也不影响构建，仅跳过回写）。
+on:
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: '私有仓库 crediscope-llm 的 ref（分支/tag/sha）'
+        required: true
+        default: 'main'
+  repository_dispatch:
+    types: [main-push]
+  schedule:
+    - cron: '37 2 * * *'
+
+env:
+  SOURCE_REF: ${{ github.event.client_payload.ref || inputs.source_ref || 'main' }}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout private source
+        uses: actions/checkout@v4
+        with:
+          repository: thomas0x01/crediscope-llm
+          ref: ${{ env.SOURCE_REF }}
+          token: ${{ secrets.BUILD_PAT }}
+          path: src
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r src/crediscope-llm/requirements.txt
+
+      - name: Install pdftotext (poppler)
+        # mock LLM 端到端（tests/e2e/test_mock_full_analysis.py）真实跑提取管线
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils
+
+      - name: Syntax check
+        run: |
+          python -m py_compile src/crediscope-llm/server.py
+          python -m py_compile src/crediscope-llm/config.py
+          python -m py_compile src/crediscope-llm/job_runner.py
+          python -m py_compile src/crediscope-llm/key_config.py
+          python -m py_compile src/crediscope-llm/control_unit/loop.py
+          python -m py_compile src/crediscope-llm/control_unit/tools.py
+
+      - name: Import verification
+        run: |
+          python -c "
+          import sys
+          sys.path.insert(0, 'src/crediscope-llm')
+          from config import APP_DIR, CLIENTS_ROOT, SCRIPTS_DIR, TEMPLATES_DIR, STATIC_DIR
+          from key_config import load_config, is_configured
+          print('All core imports OK')
+          "
+
+      - name: Run tests
+        working-directory: src/crediscope-llm
+        run: python -m pytest tests -q
+
+  # 打包冒烟：干净 Windows runner 构建冻结 sidecar 并验证发行版专属行为
+  # （shim 子进程、加密资源、中文 JSON），外加 mock LLM 迷你分析走完整
+  # execute_job——这类问题 dev 环境测不到，历史上全靠发版后人工踩坑。
+  packaging-smoke:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout private source
+        uses: actions/checkout@v4
+        with:
+          repository: thomas0x01/crediscope-llm
+          ref: ${{ env.SOURCE_REF }}
+          token: ${{ secrets.BUILD_PAT }}
+          path: src
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: pip install -r src/crediscope-llm/requirements.txt pyinstaller
+
+      - name: Build sidecar
+        env:
+          RESOURCE_KEY_PASSPHRASE: ${{ secrets.RESOURCE_KEY_PASSPHRASE }}
+        run: powershell -ExecutionPolicy Bypass -File .\src\desktop\scripts\prepare-sidecar.ps1
+
+      - name: Sidecar smoke test (with mini analysis)
+        run: python src/desktop/scripts/sidecar_smoke.py --server src/crediscope-llm/dist/crediscope-server.exe --app-root src/crediscope-llm --mini-analysis
+
+  # 把结果回写到主仓 commit，在主仓提交列表即可看到红绿。
+  # BUILD_PAT 若无 repo:status 权限则静默跳过，不影响 CI 判定。
+  status:
+    needs: [check, packaging-smoke]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report status to source repo
+        env:
+          GH_TOKEN: ${{ secrets.BUILD_PAT }}
+          CHECK_RESULT: ${{ needs.check.result }}
+          SMOKE_RESULT: ${{ needs.packaging-smoke.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          SHA=$(gh api "repos/thomas0x01/crediscope-llm/commits/${SOURCE_REF}" --jq .sha)
+          STATE=success
+          if [ "$CHECK_RESULT" != "success" ] || [ "$SMOKE_RESULT" != "success" ]; then
+            STATE=failure
+          fi
+          gh api "repos/thomas0x01/crediscope-llm/statuses/${SHA}" \
+            -f state="$STATE" -f context="source-ci" -f target_url="$RUN_URL" \
+            -f description="hub: check=${CHECK_RESULT} smoke=${SMOKE_RESULT}" \
+          || echo "⚠ 状态回写失败（BUILD_PAT 可能无 repo:status 权限），忽略"
