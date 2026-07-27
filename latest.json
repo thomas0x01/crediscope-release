@@ -1,15 +1,15 @@
 {
-  "version": "0.1.9-test.31",
-  "notes": "· 【内测】修复闸门评估遇结构化警告崩溃导致修复完成也无法进入分析；修复闸门卡片警告显示 [object Object]",
-  "pub_date": "2026-07-27T12:04:26.399594+00:00",
+  "version": "0.1.9-test.32",
+  "notes": "· 【内测】修复陈旧闸门卡片永久挡住「进入分析」新卡",
+  "pub_date": "2026-07-27T12:55:15.317608+00:00",
   "platforms": {
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybng0eDFUeFFSbXcvU0hVL0JZLzgvakFKQzBZR3Q2aXhHRFowbXhNd24wUTFsdURhOCs4RGNzN3AweHhaNjR5V1N2ZUpiYnhJRjlKVXpDdHgrdUVwVEEwPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg1MTUzNTk1CWZpbGU6Q3JlZGlzY29wZSBMTE0uYXBwLnRhci5negp0d3V5aWs1M0tscFhSNjVkZEpIWXBtd25BeWdCZlRUQlRqYUE3RVEySnN1OGRIcVpNMEl3U1AzN3hNcEVLc0s1UVpnamVUYUZuczVHbnhMVlJJWnVBdz09Cg==",
-      "url": "https://dl.thomas0x00.uk/releases/v0.1.9-test.31/Crediscope.LLM.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjlEMHlQb0Vyb29sS0Nxei9IZ0NqV29GWlo1bEJRN2o5WFBKUGFLTHBteTB4QU81bWp1WFVqaGNvL25udzA4UG11Vk95SGRoNG13VDNQMzNQRm41V0E0PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg1MTU2NTg0CWZpbGU6Q3JlZGlzY29wZSBMTE0uYXBwLnRhci5negplMHNhU2JNakE0ZEpTMEVSQysybE15WWYwWVNYQWJPR2FUdXBHZjRJbVpWOFdjalkyOHRKNlVvUGk1SFBVT3IyRklxc1AvMFlDSkVibmV0TC9UamJDdz09Cg==",
+      "url": "https://dl.thomas0x00.uk/releases/v0.1.9-test.32/Crediscope.LLM.app.tar.gz"
     },
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjlIK1ZvdFRSRWtGK2xTcHNrUFhwMXdoZnlPSDJENVByb1NodmxMWk1UdWlJTmY2djhBSWNKR254NzEza2R6VTFyWWZwemozTEs1cTlFNlYwclZxRkFVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg1MTUzODQ2CWZpbGU6Q3JlZGlzY29wZSBMTE1fMC4xLjlfeDY0LXNldHVwLmV4ZQpZU0lVVHYvWlJEL0xpTGNzR3g1RXhSRFEvS3JFNUREblA5NWI2b29QdWw3OW5obFpzWUJPV1VCVENPT3FZTGp6Ykg2bm1ZUXBLTWxXZW11SEtyOWNEUT09Cg==",
-      "url": "https://dl.thomas0x00.uk/releases/v0.1.9-test.31/Crediscope.LLM_0.1.9_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjY0YlpsVjQ1YUJzVFZKbU4wMnF2dWdCZ0FGbTExVGRsRm91WlNWdENvTmo0RjYrQkI2dlRMSmw1cmJqNEV5dXZjeWVHOXJqcmh5OVBBQU5WVWJUN2dJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg1MTU2ODk2CWZpbGU6Q3JlZGlzY29wZSBMTE1fMC4xLjlfeDY0LXNldHVwLmV4ZQpPdWNvVy9ETWQ5NllNNkVwdm9nbUJFVGM0NzZYNS8wZ3VJc2txVnZ6KzdEYkEzMkRBdGNVNXcwcGZNRFVlL05OMFFTV2ltZVVQZkorQ0NraVM4Ti9EUT09Cg==",
+      "url": "https://dl.thomas0x00.uk/releases/v0.1.9-test.32/Crediscope.LLM_0.1.9_x64-setup.exe"
     }
   }
 }
