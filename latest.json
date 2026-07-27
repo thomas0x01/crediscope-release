@@ -1,15 +1,15 @@
 {
-  "version": "0.1.6",
-  "notes": "· 修复 Windows 用户删除项目后残留幽灵项目、反复报「项目不存在」\n· 修复分析中断后项目被「已有分析任务进行中」永久卡住\n· 企业名称以审计报告识别为准，输错名/输简称自动纠正为真实全名\n· 新增行业深度分析报告：右侧栏一键生成、过程可见、产物可预览/下载Word/删除\n· 修复审计报告类附件永久挂在输入框\n· 悬浮窗关闭按钮样式统一",
-  "pub_date": "2026-07-27T06:16:52.860562+00:00",
+  "version": "0.1.7",
+  "notes": "· 修复强杀/崩溃后 project.json 损坏导致项目从列表消失（0.1.6 引入，强烈建议升级）\n· 项目元数据写入改原子写，崩溃不再产生损坏文件\n· 下载页新增多线程下载提速提示",
+  "pub_date": "2026-07-27T07:59:09.613646+00:00",
   "platforms": {
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjNJeXlpWm9VR1pXL2F0eC9BdVA0STBWQUs4UmxDMUZtOWNkS01jMjNpaFJ4RkYzVjQwQkVXa1RBcFRUYng0T2xUSTg0cEc0ZEhOV0VvWHYzV2QxZ2dBPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg1MTMyNjUzCWZpbGU6Q3JlZGlzY29wZSBMTE0uYXBwLnRhci5negpwT0d3UG5uVW0vN3hBUlZ1UWVaNjNyaUE5Z2tvQjl6d1ZhOW1rWkxFRUtoVytmK2w5THZ3TmdwT3BkUUxsUTkzbks2b0xGRE1WcStqZmxQcE9vVTBEUT09Cg==",
-      "url": "https://dl.thomas0x00.uk/releases/v0.1.6/Crediscope.LLM.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjAxMUJiRGIxUlFvQ0dmN2tPdSsrbmF1YlJsYnJCN25jeW5OU0IwSVpwNGY0cEtENzhCUkRINWczQnhFOFVVT0t0d0l6UjBzdG9HMUJOek03TGZISkFNPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg1MTM4ODUwCWZpbGU6Q3JlZGlzY29wZSBMTE0uYXBwLnRhci5negpmUVhRekF5R2E2N0hvenhRdTdQRHRqQ3VkN0JaK0JrM3luRHVFZHhDZloxWURWUWViZU45bXhEL25pSVp0eDcyalZCK3p6S0psL2tOVU1BZTFhdzFEdz09Cg==",
+      "url": "https://dl.thomas0x00.uk/releases/v0.1.7/Crediscope.LLM.app.tar.gz"
     },
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjVqNmdrYnBRZWJBOWV6MUJyM3dEZFc1KzVmWEpDWnQrSjNhaU9qaUhuMzlmQjBzd0xDMk1JNXNHSmNoRC9FeVROV3JQbExFZHpZaGVYRXdNdG51YWdzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg1MTMyOTkxCWZpbGU6Q3JlZGlzY29wZSBMTE1fMC4xLjZfeDY0LXNldHVwLmV4ZQpIdWhmTnNKVlQ3SWYxVWNIeGNhbDBScEtPdkhPR056S2g3aTZMZTFzVlZLOXR1cXJIeDNvb2IwMjJ2cXRsVEt3RFlIYWxmZVp4ekJYVFFyYWZOMmpCUT09Cg==",
-      "url": "https://dl.thomas0x00.uk/releases/v0.1.6/Crediscope.LLM_0.1.6_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjM5TDI1NHd4dXg4Ky80TXpsQ1lwbE9uendURi9TSmNqQTVQd0lqN2QxcGI3UEJTeTJXNE1PRS9tVzZPYjdnQ2I0bkx4blpicGw3QTVYU3lsZHQzcHdBPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg1MTM5MTMwCWZpbGU6Q3JlZGlzY29wZSBMTE1fMC4xLjdfeDY0LXNldHVwLmV4ZQpzS2FzL2V4eGFoZjFYa0FqeHBYSzhweHRTNysydS9VeVRvWFNQa0lkbGZKMFB3S0dqL2FhUHZmK3pTZ2FtRkxpaVJZcTRkR251cUtySzM0a0VJQjVEUT09Cg==",
+      "url": "https://dl.thomas0x00.uk/releases/v0.1.7/Crediscope.LLM_0.1.7_x64-setup.exe"
     }
   }
 }
