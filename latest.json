@@ -1,15 +1,15 @@
 {
-  "version": "0.1.9-test.29",
-  "notes": "· 【内测】修复 Windows 上 project.json 被写成 GBK 导致项目从列表消失（含存量 GBK 自动恢复）",
-  "pub_date": "2026-07-27T10:18:36.695393+00:00",
+  "version": "0.1.9-test.30",
+  "notes": "· 【内测】修复闸门「继续修复」卡片死循环（修不动时改人工确认入口）；秒表等待期间不再冻结；项目详情文件清单 stat 竞态（WinError 2 致进度不显示）",
+  "pub_date": "2026-07-27T11:18:32.614608+00:00",
   "platforms": {
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjVMWVQ0eElRNnd4djZsYUI3SkI0RlhMMHNBMmhjQU5RaXh2YU92OFNjWWRZeTNrVllsWlpCWEZaMzAxdXp6TDRuUHAxQlRQaERjMVMxR1dDbGZnRmdBPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg1MTQ3MTE5CWZpbGU6Q3JlZGlzY29wZSBMTE0uYXBwLnRhci5nego1ZkJ5a3kyRXo3VzR3QStkY1U3enNOTlRxREgvM1JjQnNjK3R1cWNNR3AxeVdJU2o2Wlc2ZUUxVk5TWWhucjUyamtRa0E5T3lod2dNUUZLcFR2bVdBQT09Cg==",
-      "url": "https://dl.thomas0x00.uk/releases/v0.1.9-test.29/Crediscope.LLM.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybnhkWXVPZDlUcy9rWEtHUGlPOGprQUh5Snc0K0hqdmtsaTR6OUV1TDdQUXU5OWFVL1VJNDIzRVhvQitSdno3VVQwbGh2RjNDNU9GSkZIWHlJQzYzTUFjPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg1MTUwNjY3CWZpbGU6Q3JlZGlzY29wZSBMTE0uYXBwLnRhci5negp4anZaYUk5UjMya2xLRW9kaEwvNnMwcERjVUh6ekNlWHNzZGdza0x4NXBxZVlkM01aTGMrdXNEVkhRMzYydk1ub3dpaDRQaGRhN1VWRWJ2UFJEaXdBdz09Cg==",
+      "url": "https://dl.thomas0x00.uk/releases/v0.1.9-test.30/Crediscope.LLM.app.tar.gz"
     },
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybnphUmlUcThqZXkzUnJKVHVTcnV0ZlFUMHZ2N21EQzNtUHhLUDJzSEROOU04QmhXeGVWWE9MWkViWFIyNnpZaHk0SkIyb3hMaysvWGU3OHFjMTJCZFFRPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg1MTQ3NDk5CWZpbGU6Q3JlZGlzY29wZSBMTE1fMC4xLjlfeDY0LXNldHVwLmV4ZQpLd3JkYW13NnlPOC9SYUwyQmw4czd5UWhYdFlYMm9XOXlWNnFZNXNVMlJvTHhkOVpINjhXdlBJNmVNYS9Ycy9RbkJyWjM5SGJINDNZVmtpVm5BT0JCZz09Cg==",
-      "url": "https://dl.thomas0x00.uk/releases/v0.1.9-test.29/Crediscope.LLM_0.1.9_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjFPMUpyMTBwMElGMjBxeFcxcDVhTXBpNlIyZ0VNM1hQK1N6dEczd3dVaTA5eHE4czk5cElEZ3dIOWpReGg2eThNY0ZhNXpDQytyODJsZjcxbjBBVGdvPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg1MTUxMDkxCWZpbGU6Q3JlZGlzY29wZSBMTE1fMC4xLjlfeDY0LXNldHVwLmV4ZQpNQzdVR2xZejE4b1lzUVR2bGhzMlVrMlFVcXh0KzFMOVZkQTdBZTVnU1A0bzlySzlrM0h0YUJHRDg5ZUFJZnNKeXlGRnJyTFZtY2dPY1ZEMERBcm9Bdz09Cg==",
+      "url": "https://dl.thomas0x00.uk/releases/v0.1.9-test.30/Crediscope.LLM_0.1.9_x64-setup.exe"
     }
   }
 }
