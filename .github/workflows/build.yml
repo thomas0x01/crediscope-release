@@ -85,8 +85,8 @@ jobs:
           RESOURCE_KEY_PASSPHRASE: ${{ secrets.RESOURCE_KEY_PASSPHRASE }}
         run: bash src/desktop/scripts/prepare-sidecar.sh
 
-      - name: Sidecar smoke test
-        run: python3 src/desktop/scripts/sidecar_smoke.py --server src/crediscope-llm/dist/crediscope-server --app-root src/crediscope-llm
+      - name: Sidecar smoke test (with mini analysis)
+        run: python3 src/desktop/scripts/sidecar_smoke.py --server src/crediscope-llm/dist/crediscope-server --app-root src/crediscope-llm --mini-analysis
 
       - name: Sync desktop version
         shell: bash
@@ -164,8 +164,8 @@ jobs:
           RESOURCE_KEY_PASSPHRASE: ${{ secrets.RESOURCE_KEY_PASSPHRASE }}
         run: powershell -ExecutionPolicy Bypass -File .\src\desktop\scripts\prepare-sidecar.ps1
 
-      - name: Sidecar smoke test
-        run: python src/desktop/scripts/sidecar_smoke.py --server src/crediscope-llm/dist/crediscope-server.exe --app-root src/crediscope-llm
+      - name: Sidecar smoke test (with mini analysis)
+        run: python src/desktop/scripts/sidecar_smoke.py --server src/crediscope-llm/dist/crediscope-server.exe --app-root src/crediscope-llm --mini-analysis
 
       - name: Sync desktop version
         shell: bash
