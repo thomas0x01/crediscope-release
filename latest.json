@@ -1,15 +1,15 @@
 {
-  "version": "0.1.9-test.33",
-  "notes": "· 发布包冒烟对齐验证（mac/win mini-analysis）",
-  "pub_date": "2026-07-28T00:22:24.436607+00:00",
+  "version": "0.1.10",
+  "notes": "· 修复 0.1.9 用户实测问题：Excel 财报（行次列/双栏布局/文本数字）提取全科目缺失；闸门「进入分析」死循环，新增人工确认直达入口；#REF! 公式损坏如实上报；反馈卡脱敏加固；新增 agent 统一文件读取工具",
+  "pub_date": "2026-07-28T09:07:55.576665+00:00",
   "platforms": {
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybnlHZENqc2M2ZzF6dm0vM2V1Tk1lUlYvVTd0WFhFbVF4dGdTYzhmV05DdU5PMDE3OVFZek44Y1lJZ1ZCQ25FVGNXV0tOQUh2TzdTczhlZVV6VVErcndBPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg1MTk3ODI2CWZpbGU6Q3JlZGlzY29wZSBMTE0uYXBwLnRhci5negp3T1pydnJ0ZDZhejdHQnhHYjJ1dTNqcTB1dzVoUVZNcjVwczZtK2pBOTE2N1dMcGVENlQ0K0dYZTJuK2N6d1VieVdrSVh0TGxkTHlsQWhzeWtHcjRBdz09Cg==",
-      "url": "https://dl.thomas0x00.uk/releases/v0.1.9-test.33/Crediscope.LLM.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjZNUzdscnQxeUR3OVpjdlJ3VTZXRFpmeGp2SHlCZXI4cDJteTVkb2hhb1ZGeTFxN3dYVXlDMW5YU2UvQmhrN2ZEMWxkNGpHbUVKc2dlU2Rrbi9PZUFvPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg1MjI5Mzg1CWZpbGU6Q3JlZGlzY29wZSBMTE0uYXBwLnRhci5negpkU2RUeFkvODNzWHdndThnZjU1aWFBRHZ6dXVoZVpDcER3QTV4MmVNZ3VzT1ozUk1BL0FFcy8yMk5QNWZkOGVmVTI1UlJJZXRWbWZHdzFyZFU2Z1RCQT09Cg==",
+      "url": "https://dl.thomas0x00.uk/releases/v0.1.10/Crediscope.LLM.app.tar.gz"
     },
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybnlHR3MwZS82aTEyWTFsVVJETzVaVDVhUkZHRWFoeG9mcE5XZ2NDaTEzSG5kRHZ3Nis4UjA1U0FkajRHMGhNVzMwNzcyUEk2alBGTitLd2dHWmhUckFRPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg1MTk4MTIxCWZpbGU6Q3JlZGlzY29wZSBMTE1fMC4xLjlfeDY0LXNldHVwLmV4ZQphMDF4Rkkyc3JDUnZLRENaaDJHdmRPTHpxSEt4V0ZkVFlqQjBOSWlhVi91b0JZc1BqUFVvU0RiWUJ1VUJDTXRjMWZyS0c5elE0Tm4rYjNVREJpb0VBUT09Cg==",
-      "url": "https://dl.thomas0x00.uk/releases/v0.1.9-test.33/Crediscope.LLM_0.1.9_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybi9tcFp1bTZYNHd4MGVZcWZFVXdXZ24rV1Y1NmtWZ1ZqOURLVTlvZ0FoSStwaDZmSmgwOWg3WFYyQ2JMVDJ1TmlVSUdZVFRCSUpBOGl1QU81bVdxZXdjPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg1MjI5NjQ2CWZpbGU6Q3JlZGlzY29wZSBMTE1fMC4xLjEwX3g2NC1zZXR1cC5leGUKWDkwcDNiWTVpekJkcFk5NlhzeVliME1PaWY4Z2FJRlFSQ1hCZVFlcUF1emxHaStTWVB4K2FjdWZCd2UvdlRZc0NkaGtzcW50Z0hmOExETkxvbXZWQ0E9PQo=",
+      "url": "https://dl.thomas0x00.uk/releases/v0.1.10/Crediscope.LLM_0.1.10_x64-setup.exe"
     }
   }
 }
