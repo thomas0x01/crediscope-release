@@ -48,3 +48,12 @@
 ## 说明
 
 本仓库仅用于发布安装包与 CI 构建，不包含源代码。
+
+---
+
+## demo-site/（外滩黑客松演示站，2026-07-31 新增）
+
+- `demo-site/` 是演示站的**构建产物**（源工程另处维护），对外地址 `https://dl.thomas0x00.uk/demo/index.html`
+- 部署：Actions → **Deploy Demo Site** 手动触发，sync 到 R2 bucket 的 `demo/` 路径，与版本发布链路无关
+- 更新方式：替换 `demo-site/` 内容 → push → 手动跑一次 Deploy Demo Site
+- 注意：R2 不做目录索引，`/demo/`（不带 index.html）会 404，属正常现象
