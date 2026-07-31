@@ -1,0 +1,26 @@
+name: Deploy Demo Site
+
+# 部署 crediscope 演示站到 R2 bucket 的 demo/ 路径（dl.thomas0x00.uk/demo/）。
+# 仅手动触发：与 build.yml / ci.yml 发布链路零交集。
+# 使用方式：Actions → Deploy Demo Site → Run workflow。
+# 更新演示站：替换 demo-site/ 目录内容并 push，然后手动运行本 workflow。
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sync demo site to R2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_EC2_METADATA_DISABLED: "true"
+        run: |
+          EP="https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com"
+          aws s3 sync demo-site/ "s3://${{ secrets.R2_BUCKET }}/demo/" \
+            --endpoint-url "$EP" --no-progress --delete
+          echo "deployed to https://dl.thomas0x00.uk/demo/"

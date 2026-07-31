@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crediscope · 信贷分析 Agent 在线演示</title>
+<meta name="description" content="Crediscope：信贷分析特化的 Agent 工具。本页为一次真实运行的留痕回放——无后端、无实时模型调用。">
+<link rel="icon" type="image/png" href="/demo/assets/logo-CVBTf6SW.png">
+  <script type="module" crossorigin src="/demo/assets/index-BNerBm1K.js"></script>
+  <link rel="stylesheet" crossorigin href="/demo/assets/index-CqjNJszY.css">
+</head>
+<body data-view="sim">
+
+<!-- ============ 视图一：应用模拟器（默认） ============ -->
+<div id="viewSim">
+  <div class="sim-chrome">
+    <div class="sim-title">
+      <span class="brand-logo"><img src="/demo/assets/logo-CVBTf6SW.png" alt=""></span>
+      <span class="st-name">Crediscope <em>工作台</em></span>
+      <span class="st-file">授信调查 · 华湖城建发展股份有限公司（示例受信人 · 已脱敏）</span>
+    </div>
+    <button class="sim-tech-btn" id="gotoTech">技术解析 →</button>
+  </div>
+
+  <div class="sim-body">
+    <aside class="sim-files">
+      <div class="sf-cap">输入文件 · 财报 PDF</div>
+      <div id="simFileList"></div>
+      <div class="sf-note">文件仅在本机解析<br>不上传 · 不同步</div>
+    </aside>
+
+    <main class="sim-main">
+      <!-- 待机首屏 -->
+      <div class="sim-panel sim-home" id="simHome">
+        <div class="sh-inner">
+          <div class="sh-key">4 份财报 PDF 已就绪</div>
+          <button class="sh-start" id="simStart">开始分析</button>
+          <div class="sh-sub">提取 → 编排 → 校验 → 组装 · 全程本地完成</div>
+        </div>
+      </div>
+
+      <!-- 提取 -->
+      <div class="sim-panel" id="simExtract" hidden>
+        <div class="sp-head"><span class="sp-tag">阶段 1/4 · 数据提取</span><span class="sp-sub">脚本优先 · Agent 兜底</span></div>
+        <div class="se-tabs" id="seTabs"></div>
+        <div class="se-table-wrap"><table class="se-table" id="seTable"></table></div>
+      </div>
+
+      <!-- 编排 -->
+      <div class="sim-panel" id="simOrch" hidden>
+        <div class="sp-head"><span class="sp-tag">阶段 2/4 · Agent 编排</span><span class="sp-sub">父 Agent 拆 KEY · 子 Agent 领任务（点击卡片查看 prompt 与产出）</span></div>
+        <div class="so-grid" id="soGrid"></div>
+      </div>
+
+      <!-- G 规则 -->
+      <div class="sim-panel" id="simGrules" hidden>
+        <div class="sp-head"><span class="sp-tag">阶段 3/4 · G 规则校验</span><span class="sp-sub">交付前的机械审计清单 · 22 条</span></div>
+        <div class="sg-list" id="sgList"></div>
+      </div>
+
+      <!-- 组装 -->
+      <div class="sim-panel" id="simAssemble" hidden>
+        <div class="sp-head"><span class="sp-tag">阶段 4/4 · 报告组装</span><span class="sp-sub">KEY 产出落位 · 章节合并</span></div>
+        <div class="sa-progress"><div class="sa-bar" id="saBar"></div></div>
+        <div class="sa-chapters" id="saChapters"></div>
+        <div class="sa-done" id="saDone" hidden>
+          <div class="sa-done-text">✓ 《公司客户授信调查报告》组装完成 · 311 内容块 / 13 张表格</div>
+          <button class="btn primary" id="openReport">打开完整报告 →</button>
+        </div>
+      </div>
+
+      <!-- 控制台 -->
+      <div class="sim-console">
+        <div class="sc-cap">CONSOLE · 运行留痕</div>
+        <div class="sc-body" id="simConsoleBody"></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- 播放控制条 -->
+  <div class="sim-controls">
+    <button id="ctlPlay" class="sc-btn" disabled>▶ 播放</button>
+    <button id="ctlSpeed" class="sc-btn" disabled>1x</button>
+    <button id="ctlSkip" class="sc-btn" disabled>跳过 »</button>
+    <button id="ctlReplay" class="sc-btn" disabled>↻ 重播</button>
+    <span class="sc-phase" id="ctlPhase">待机 · 等待开始分析</span>
+    <span class="sc-note">界面为演示重排，全部产物取自桌面端真实运行记录</span>
+    <span class="sc-badge">真实运行留痕回放 · 已脱敏</span>
+  </div>
+
+  <!-- worker 详情抽屉 -->
+  <div class="sim-drawer" id="simDrawer">
+    <div class="sd-head">
+      <span id="sdTitle">worker</span>
+      <button id="sdClose">✕</button>
+    </div>
+    <div class="sd-body" id="sdBody"></div>
+  </div>
+  <div class="sim-drawer-mask" id="sdMask"></div>
+</div>
+
+<!-- ============ 视图二：技术解析（原六段内容） ============ -->
+<div id="viewTech">
+
+<!-- ============ 顶栏 ============ -->
+<header class="topbar">
+  <a class="brand" href="#hero">
+    <span class="brand-logo"><img src="/demo/assets/logo-CVBTf6SW.png" alt="Crediscope logo"></span>
+    <span><b>Crediscope</b><small>信贷分析 Agent</small></span>
+  </a>
+  <nav class="steps-nav" id="stepsNav">
+    <a href="#upload" data-step="0"><span class="no">01</span>上传</a>
+    <a href="#extract" data-step="1"><span class="no">02</span>数据提取</a>
+    <a href="#orchestrate" data-step="2"><span class="no">03</span>Agent 编排</a>
+    <a href="#wiki" data-step="3"><span class="no">04</span>知识库</a>
+    <a href="#grules" data-step="4"><span class="no">05</span>G 规则校验</a>
+    <a href="#report" data-step="5"><span class="no">06</span>最终报告</a>
+  </nav>
+  <button class="sim-btn" id="gotoSim">◈ 应用演示</button>
+  <a class="dl-btn" href="https://dl.thomas0x00.uk/index.html" target="_blank" rel="noopener">下载桌面版</a>
+</header>
+
+<!-- ============ Hero ============ -->
+<section class="hero" id="hero">
+  <div class="hero-grid">
+    <div>
+      <span class="hero-tag">外滩黑客松 · AI Coding 大赛 · 作品演示</span>
+      <h1>Credi<span class="scope">scope</span></h1>
+      <p class="hero-sub">信贷分析特化的 Agent 工具</p>
+      <p class="hero-desc">
+        读入受信人财报 PDF，按信贷方法论流水线产出完整授信调查报告。
+        本页不是产品宣传片——它是<b>一次真实运行的留痕回放</b>：每一步展示的中间产物
+        （提取 JSON、worker prompt、wiki 图谱、校验规则、成稿 docx）均取自真实运行记录，已脱敏。
+        界面为演示重排，全部产物取自桌面端真实运行记录。
+        无后端、无实时模型调用、数据只存本机。
+      </p>
+      <div class="hero-cta">
+        <button class="btn primary" id="startBtn">开始演示 · 重放流水线</button>
+        <a class="btn" href="https://dl.thomas0x00.uk/index.html" target="_blank" rel="noopener">下载桌面版</a>
+        <a class="btn" href="#" rel="noopener">GitHub 仓库（即将公开）</a>
+      </div>
+      <div class="hero-stats">
+        <div class="hstat"><b>4 份</b><span>财报 PDF 输入</span></div>
+        <div class="hstat"><b>235 科目/份</b><span>三表结构化提取</span></div>
+        <div class="hstat"><b>115 / 657</b><span>wiki 节点 / 引用边</span></div>
+        <div class="hstat"><b>22 条</b><span>G 规则机械校验</span></div>
+        <div class="hstat"><b>311 块</b><span>成稿段落与表格</span></div>
+      </div>
+    </div>
+    <div class="hero-panel">
+      <div class="logo-card">
+        <img src="/demo/assets/logo-CVBTf6SW.png" alt="Crediscope">
+        <div>
+          <div class="lc-name">Crediscope</div>
+          <div class="lc-sub">credit analysis agent · desktop</div>
+        </div>
+      </div>
+      <div class="pipe">
+        <div class="pipe-title">PIPELINE — 六段式留痕回放</div>
+        <div class="pipe-row">
+          <span class="pipe-node hot">上传 PDF</span><span class="pipe-arrow">→</span>
+          <span class="pipe-node">结构化提取</span><span class="pipe-arrow">→</span>
+          <span class="pipe-node">父 Agent 编排</span><span class="pipe-arrow">→</span>
+          <span class="pipe-node">wiki 规则注入</span><span class="pipe-arrow">→</span>
+          <span class="pipe-node">G 规则校验</span><span class="pipe-arrow">→</span>
+          <span class="pipe-node hot">授信调查报告</span>
+        </div>
+        <div class="pipe-foot">每一步均可溯源：脚本留痕 / prompt 留痕 / 规则留痕 / 校验留痕</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 01 上传 ============ -->
+<section class="stage" id="upload" data-step="0">
+  <div class="stage-head">
+    <span class="stage-no">STEP 01</span>
+    <h2>上传：输入只有财报 PDF</h2>
+    <span class="stage-src">留痕来源 · customer-run / 客户一 / extract.json</span>
+  </div>
+  <p class="stage-lede">
+    受信人近期的审计报告或年报，直接拖入。文件名是采集系统的匿名编号——
+    <b>不需要模板、不需要手工录入</b>。解析、计算、写作全部在本机完成，原始文件不出本机。
+  </p>
+  <div class="lock-note">— 流水线尚未推进到此 —</div>
+  <div class="lock-veil">
+    <div class="pdf-grid" id="pdfGrid"></div>
+    <div class="hint-bar">
+      <b>本次运行读入 4 份 PDF。</b>每份均被识别为文本型财报（isFinancialReport = true），
+      按资产负债表 / 利润表 / 现金流量表三张主表抽取科目，单份抽取 <b>235 个科目</b>（114 + 65 + 56）。
+    </div>
+  </div>
+</section>
+
+<!-- ============ 02 数据提取 ============ -->
+<section class="stage" id="extract" data-step="1">
+  <div class="stage-head">
+    <span class="stage-no">STEP 02</span>
+    <h2>数据提取：脚本优先，Agent 兜底</h2>
+    <span class="stage-src">留痕来源 · extract.json · metadata</span>
+  </div>
+  <p class="stage-lede">
+    提取层默认走确定性脚本：PDF 文本解析 → 科目正则映射 → 三表对齐校验。
+    <b>脚本能解决的问题，不花一次模型调用</b>；格式变了，Agent 才接管。
+  </p>
+  <div class="lock-note">— 流水线尚未推进到此 —</div>
+  <div class="lock-veil">
+    <div class="callout">
+      <h4>报表格式变化 → 提取脚本失效 → Agent 兜底</h4>
+      <p>
+        4 份 PDF 中，<code>1223307072.PDF</code> 的报表格式发生变化，出现 3 个脚本未注册的科目：
+        <code>结算备付金</code>、<code>拆出资金</code>、<code>以摊余成本计量的金融资产终止确认收益</code>。
+        映射表失效后流水线没有中断——该文件触发 <b>3 次 LLM 兜底调用</b>（llmCalls = 3）完成科目对齐，
+        其余 3 份 <code>llmCalls = 0</code>，纯脚本通过。
+      </p>
+      <div class="flow">
+        <span>pdf_text 解析</span><i>→</i><span>正则映射</span><i>→</i><span>未匹配科目 ≥ 1 ?</span><i>→</i><span style="color:var(--yellow)">LLM 兜底映射</span><i>→</i><span>三表对齐</span>
+      </div>
+    </div>
+
+    <div class="sub-h">关键科目横向对照（4 份 PDF · 单位：万元）</div>
+    <div class="table-wrap">
+      <div class="table-scroll"><table class="data" id="compareTable"></table></div>
+      <div class="tbl-cap">数值取自 extract.json · statements.balanceSheet，原值单位为元，此处 ÷10,000 保留两位</div>
+    </div>
+
+    <div class="sub-h">科目明细 · 1219539522.PDF 资产负债表全量（可滚动）</div>
+    <div class="table-wrap">
+      <div class="table-scroll"><table class="data" id="detailTable"></table></div>
+      <div class="tbl-cap">共 114 个科目行 · matchedSource 非空 = 脚本正则直接命中 · null = 该期无余额</div>
+    </div>
+
+    <div class="sub-h">附注原文留痕（extract.json · note 字段抽样）</div>
+    <div class="note-grid" id="noteGrid"></div>
+  </div>
+</section>
+
+<!-- ============ 03 Agent 编排 ============ -->
+<section class="stage" id="orchestrate" data-step="2">
+  <div class="stage-head">
+    <span class="stage-no">STEP 03</span>
+    <h2>Agent 编排：父 Agent 拆 KEY，子 Agent 领任务</h2>
+    <span class="stage-src">留痕来源 · worker prompt 原文（real_prompt_应收账款.md）</span>
+  </div>
+  <p class="stage-lede">
+    报告骨架按 <b>KEY</b> 切分——每个会计科目、每个分析章节都是一个独立 KEY。
+    父 Agent 把 KEY 连同该 KEY 命中的 wiki 规则一起打包成子任务，派发给 worker；
+    worker <b>只写自己负责的 KEY，不碰授信结论</b>，产出落盘后由父 Agent 统一合并。
+  </p>
+  <div class="lock-note">— 流水线尚未推进到此 —</div>
+  <div class="lock-veil">
+    <div class="orch">
+      <div class="parent-card">
+        <span class="pc-tag">PARENT AGENT</span>
+        <h3>章节拆分与派发</h3>
+        <p>读入「分析骨架」模板，解析全部 <code>&lt;!-- KEY: ... --&gt;</code> 占位符，按 key_wiki_map 注册表为每个 KEY 预载 wiki 规则，生成子任务。</p>
+        <p>下面是财务资产章节的派发清单（取自真实模板片段）。</p>
+      </div>
+      <div class="worker-list" id="workerList"></div>
+    </div>
+
+    <details class="code-fold" id="promptFold">
+      <summary>
+        <span class="caret">▶</span>
+        worker prompt 结构骨架 · KEY = financial.assets.应收账款
+        <span class="meta">原文 4,687 字节 · 关键判断标准已脱密 · 点击展开</span>
+      </summary>
+      <pre id="promptPre"></pre>
+    </details>
+  </div>
+</section>
+
+<!-- ============ 04 知识库 wiki ============ -->
+<section class="stage" id="wiki" data-step="3">
+  <div class="stage-head">
+    <span class="stage-no">STEP 04</span>
+    <h2>知识库 wiki：规则之间的引线是预埋的</h2>
+    <span class="stage-src">留痕来源 · wiki_graph.json · 115 页 / 657 边</span>
+  </div>
+  <p class="stage-lede">
+    信贷方法论不写死在 prompt 里，而是沉淀为本机 wiki：<b>框架页、科目概念页、行业页、G 规则页</b>
+    互相以 [[wikilink]] 引用。worker 查询「应收账款」时，图谱把挂在上面的
+    <b>G14（账龄逐户分析）、G12（关联交易穿透）</b>和相邻概念页一并推送——每条边都带着上下文。
+  </p>
+  <div class="lock-note">— 流水线尚未推进到此 —</div>
+  <div class="lock-veil">
+    <div class="graph-wrap" id="graphWrap">
+      <svg id="graphSvg" viewBox="0 0 1000 1000" role="img" aria-label="wiki 知识图谱"></svg>
+      <div class="graph-tip" id="graphTip"></div>
+      <div class="graph-legend" id="graphLegend"></div>
+    </div>
+    <div class="hint-bar">
+      节点大小 = 连接度；着色 = 社区聚类（c0–c5，仅用于区分）。
+      <b>应收账款分析</b>（连接度 30）已高亮，悬停任意节点可查看其名与邻居。
+      布局为离线预计算的力导向结果，渲染为纯内联 SVG，无任何外部库。
+    </div>
+  </div>
+</section>
+
+<!-- ============ 05 G 规则校验 ============ -->
+<section class="stage" id="grules" data-step="4">
+  <div class="stage-head">
+    <span class="stage-no">STEP 05</span>
+    <h2>G 规则校验：交付前的机械审计清单</h2>
+    <span class="stage-src">内容来源 · wiki/frameworks/G规则总表.md（演示页改写）</span>
+  </div>
+  <p class="stage-lede">
+    22 条注册规则，每条有唯一编号、触发条件、严重性分级。
+    <b>blocking</b> 阻断结论 · <b>major</b> 必须补专项分析 · <b>warning</b> 披露后允许输出 · <b>style</b> 语言格式错误。
+    未在总表注册的 G 编号，不得进入报告或 prompt。
+  </p>
+  <div class="lock-note">— 流水线尚未推进到此 —</div>
+  <div class="lock-veil">
+    <div class="g-cols" id="gCols"></div>
+    <div class="mech-strip">
+      <div class="mech"><b><span class="m-no">①</span>触发器写在数据上</b><p>指标脚本算完即知命中哪条规则（如 FCF 连续为负命中 G13），命中的规则原文以「强制执行」块注入全体 worker。</p></div>
+      <div class="mech"><b><span class="m-no">②</span>机械比对</b><p>G9 / G10：报告写的流动比率、资产负债率与脚本计算值偏差超限即 FAIL（±0.05 / ±0.5pp）。</p></div>
+      <div class="mech"><b><span class="m-no">③</span>反推校验</b><p>G18：校验器从财务数据 JSON 反推本报告应当加载哪些 wiki 页，比对实际使用记录，缺失即 FAIL。</p></div>
+      <div class="mech"><b><span class="m-no">④</span>磁盘存在性验证</b><p>worker 在记录里写「我查了某页」，校验器去磁盘确认文件真实存在——防自我申报。</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 06 最终报告 ============ -->
+<section class="stage" id="report" data-step="5">
+  <div class="stage-head">
+    <span class="stage-no">STEP 06</span>
+    <h2>最终报告：从占位符到成稿</h2>
+    <span class="stage-src">留痕来源 · subagent_keys / financial.assets.应收账款.md → report.docx</span>
+  </div>
+  <p class="stage-lede">
+    对照同一 KEY 的三个形态：<b>模板占位符 → worker 交回的原始产出 → 父 Agent 整合后的成稿</b>。
+    下方为完整《公司客户授信调查报告》阅读视图，支持左侧目录跳转。
+  </p>
+  <div class="lock-note">— 流水线尚未推进到此 —</div>
+  <div class="lock-veil">
+    <div class="compare-flow">
+      <div class="cf-stage placeholder">
+        <h5>① 模板占位符（分析骨架.md）</h5>
+        <div class="cf-body" id="cfPlaceholder"></div>
+      </div>
+      <div class="cf-arrow">→</div>
+      <div class="cf-stage">
+        <h5>② worker 交回的原始产出（subagent_keys/financial.assets.应收账款.md）</h5>
+        <div class="cf-body" id="cfWorker"></div>
+      </div>
+      <div class="cf-arrow">→</div>
+      <div class="cf-stage final">
+        <h5>③ 父 Agent 整合后的成稿段落（report.docx · 财务因素分析 / 应收账款）</h5>
+        <div class="cf-body" id="cfFinal"></div>
+      </div>
+    </div>
+    <p class="cf-note">
+      该 KEY 的成稿即 worker 产出原文落位：父 Agent 负责占位符替换、<code>&lt;!-- KEY --&gt;</code> 标记清理与全文连贯性校验。
+      worker 在资料不足时按 G20 写明「尚需进一步获取」<b>而不是编造账龄表</b>——证据不足拒答是规则，不是建议。
+    </p>
+
+    <div class="report-meta-bar">
+      <span>成稿留痕：<b>311 个内容块 · 13 张表格</b></span>
+      <span>来源：report.docx（python-docx 提取，全文脱敏后内嵌）</span>
+    </div>
+    <div class="report-shell">
+      <nav class="report-toc" id="reportToc"><div class="toc-cap">REPORT · 目录</div></nav>
+      <article class="report-paper" id="reportPaper"></article>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Footer ============ -->
+<footer>
+  <div class="foot-inner">
+    <div class="foot-grid">
+      <div>
+        <div class="foot-brand">
+          <span class="brand-logo"><img src="/demo/assets/logo-CVBTf6SW.png" alt=""></span>
+          <b>Crediscope</b>
+        </div>
+        <p>信贷分析特化的 Agent 工具。桌面应用，本地运行：
+        受信人财报、提取结果、wiki 知识库与成稿<b>只存本机</b>，不上传、不同步。</p>
+        <p>当前处于<b>免费内测</b>阶段。</p>
+      </div>
+      <div>
+        <h4>获取</h4>
+        <li><a href="https://dl.thomas0x00.uk/index.html" target="_blank" rel="noopener">下载桌面版 ↗</a></li>
+        <li><a href="#" rel="noopener">GitHub 仓库（即将公开）</a></li>
+        <li><a href="#hero">回到顶部 ↑</a></li>
+      </div>
+      <div>
+        <h4>关于本演示页</h4>
+        <p>纯静态回放：无后端、无实时模型调用、无外部资源、无统计脚本。
+        页面中所有中间产物均取自真实运行留痕，涉及受信人名称、人名、
+        第三方机构与证券代码的内容已做脱敏处理。</p>
+      </div>
+    </div>
+    <div class="foot-note">
+      <span>Crediscope · 外滩黑客松 AI Coding 大赛参赛作品</span>
+      <span>static replay · no backend · no tracking</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ============ 回放控制台 ============ -->
+<div class="console" id="console">
+  <div class="console-head">
+    <span class="dot"></span><span id="consoleTitle">PIPELINE REPLAY</span>
+    <button id="skipBtn">跳过 »</button>
+  </div>
+  <div class="console-body" id="consoleBody"></div>
+</div>
+
+</div><!-- /#viewTech -->
+
+</body>
+</html>
