@@ -36,6 +36,26 @@ jobs:
           token: ${{ secrets.BUILD_PAT }}
           path: src
 
+      # wiki 内容仓拆分（2026-08-03）：主仓不再有 wiki/，按 src/wiki_ref
+      # 锚定的 ref 从内容仓拉取并摆回原位，后续构建/测试步骤无感
+      - name: Read wiki_ref
+        id: wikiref
+        shell: bash
+        run: echo "ref=$(cat src/wiki_ref)" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout wiki content
+        uses: actions/checkout@v4
+        with:
+          repository: thomas0x01/crediscope-wiki
+          ref: ${{ steps.wikiref.outputs.ref }}
+          token: ${{ secrets.BUILD_PAT }}
+          path: wiki-content
+          sparse-checkout: wiki
+
+      - name: Place wiki content
+        shell: bash
+        run: cp -r wiki-content/wiki src/crediscope-llm/wiki
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -64,6 +84,26 @@ jobs:
           ref: ${{ inputs.source_ref }}
           token: ${{ secrets.BUILD_PAT }}
           path: src
+
+      # wiki 内容仓拆分（2026-08-03）：主仓不再有 wiki/，按 src/wiki_ref
+      # 锚定的 ref 从内容仓拉取并摆回原位，后续构建/测试步骤无感
+      - name: Read wiki_ref
+        id: wikiref
+        shell: bash
+        run: echo "ref=$(cat src/wiki_ref)" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout wiki content
+        uses: actions/checkout@v4
+        with:
+          repository: thomas0x01/crediscope-wiki
+          ref: ${{ steps.wikiref.outputs.ref }}
+          token: ${{ secrets.BUILD_PAT }}
+          path: wiki-content
+          sparse-checkout: wiki
+
+      - name: Place wiki content
+        shell: bash
+        run: cp -r wiki-content/wiki src/crediscope-llm/wiki
 
       - uses: actions/setup-node@v4
         with:
@@ -143,6 +183,26 @@ jobs:
           ref: ${{ inputs.source_ref }}
           token: ${{ secrets.BUILD_PAT }}
           path: src
+
+      # wiki 内容仓拆分（2026-08-03）：主仓不再有 wiki/，按 src/wiki_ref
+      # 锚定的 ref 从内容仓拉取并摆回原位，后续构建/测试步骤无感
+      - name: Read wiki_ref
+        id: wikiref
+        shell: bash
+        run: echo "ref=$(cat src/wiki_ref)" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout wiki content
+        uses: actions/checkout@v4
+        with:
+          repository: thomas0x01/crediscope-wiki
+          ref: ${{ steps.wikiref.outputs.ref }}
+          token: ${{ secrets.BUILD_PAT }}
+          path: wiki-content
+          sparse-checkout: wiki
+
+      - name: Place wiki content
+        shell: bash
+        run: cp -r wiki-content/wiki src/crediscope-llm/wiki
 
       - uses: actions/setup-node@v4
         with:
