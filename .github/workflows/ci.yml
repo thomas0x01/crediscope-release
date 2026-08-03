@@ -56,6 +56,21 @@ jobs:
         shell: bash
         run: cp -r wiki-content/wiki src/crediscope-llm/wiki
 
+      # 防忘 bump：wiki_ref 落后内容仓 main 时黄条警告（不阻断——有时是故意钉版）
+      - name: Wiki freshness check
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.BUILD_PAT }}
+        run: |
+          PINNED=$(cat src/wiki_ref)
+          LATEST=$(gh api repos/thomas0x01/crediscope-wiki/commits/main --jq .sha) || exit 0
+          if [ "$PINNED" = "$LATEST" ]; then
+            echo "wiki_ref 与内容仓 main 一致 ✓"
+          else
+            COUNT=$(gh api "repos/thomas0x01/crediscope-wiki/compare/${PINNED}...${LATEST}" --jq '.ahead_by // "?"' 2>/dev/null || echo "?")
+            echo "::warning::wiki_ref 落后内容仓 main（${PINNED:0:7} → ${LATEST:0:7}，落后 ${COUNT} 个提交）。如非故意钉版：主仓跑 scripts/bump_wiki_ref.sh"
+          fi
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
