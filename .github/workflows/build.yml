@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout private source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: thomas0x01/crediscope-llm
           ref: ${{ inputs.source_ref }}
@@ -44,7 +44,7 @@ jobs:
         run: echo "ref=$(cat src/wiki_ref)" >> "$GITHUB_OUTPUT"
 
       - name: Checkout wiki content
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: thomas0x01/crediscope-wiki
           ref: ${{ steps.wikiref.outputs.ref }}
@@ -71,7 +71,7 @@ jobs:
             echo "::warning::wiki_ref 落后内容仓 main（${PINNED:0:7} → ${LATEST:0:7}，落后 ${COUNT} 个提交）。如非故意钉版：主仓跑 scripts/bump_wiki_ref.sh"
           fi
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.11'
 
@@ -93,7 +93,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout private source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: thomas0x01/crediscope-llm
           ref: ${{ inputs.source_ref }}
@@ -108,7 +108,7 @@ jobs:
         run: echo "ref=$(cat src/wiki_ref)" >> "$GITHUB_OUTPUT"
 
       - name: Checkout wiki content
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: thomas0x01/crediscope-wiki
           ref: ${{ steps.wikiref.outputs.ref }}
@@ -124,7 +124,7 @@ jobs:
         with:
           node-version: '20'
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.11'
 
@@ -192,7 +192,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout private source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: thomas0x01/crediscope-llm
           ref: ${{ inputs.source_ref }}
@@ -207,7 +207,7 @@ jobs:
         run: echo "ref=$(cat src/wiki_ref)" >> "$GITHUB_OUTPUT"
 
       - name: Checkout wiki content
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: thomas0x01/crediscope-wiki
           ref: ${{ steps.wikiref.outputs.ref }}
@@ -223,7 +223,7 @@ jobs:
         with:
           node-version: '20'
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.11'
 
@@ -291,10 +291,10 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Checkout private source (for gen script)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: thomas0x01/crediscope-llm
           ref: ${{ inputs.source_ref }}
