@@ -166,7 +166,11 @@ jobs:
           SMOKE_RESULT: ${{ needs.packaging-smoke.result }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          SHA=$(gh api "repos/thomas0x01/crediscope-llm/commits/${SOURCE_REF}" --jq .sha)
+          SHA=$(gh api "repos/thomas0x01/crediscope-llm/commits/${SOURCE_REF}" --jq .sha) || SHA=""
+          if [ -z "$SHA" ]; then
+            echo "⚠ 无法读取主仓 commit（BUILD_PAT 权限不足），跳过状态回写"
+            exit 0
+          fi
           STATE=success
           if [ "$CHECK_RESULT" != "success" ] || [ "$SMOKE_RESULT" != "success" ]; then
             STATE=failure
