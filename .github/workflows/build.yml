@@ -307,8 +307,33 @@ jobs:
           path: updater_artifacts
           merge-multiple: true
 
+      # latest.json（updater 稳定通道）只在干净版本号构建时更新——
+      # beta/rc 等带后缀 tag 改写它会让正式版用户收到 beta 升级提示
+      # （2026-08-19 v0.1.19-beta.2 污染 updates 通道实证）
       - name: Generate latest.json
+        if: ${{ !contains(inputs.release_tag, '-') }}
         run: python3 src/desktop/scripts/gen_latest_json.py --repo thomas0x01/crediscope-release --tag "${{ inputs.release_tag }}" --assets-dir updater_artifacts --out latest.json --notes "${{ inputs.notes }}"
+
+      # 下载页：正式构建主区用本次信息并回写 page_state.json；
+      # 测试构建主区保持 state 里的正式版，本次构建进内测区（发布卫生）
+      - name: Generate download page
+        run: python3 src/desktop/scripts/gen_release_page.py --release-tag "${{ inputs.release_tag }}" --notes "${{ inputs.notes }}" --pre-tag "${{ inputs.pre_tag }}" --state page_state.json --out dist_page
+
+      - name: Commit latest.json + page_state.json
+        run: |
+          git config user.name "crediscope-bot"
+          git config user.email "bot@crediscope.local"
+          git add latest.json page_state.json
+          git diff --cached --quiet && echo "清单无变化" && exit 0
+          git commit -m "chore(updater): latest.json → ${{ inputs.release_tag }}"
+          git push
+
+      - name: Attach latest.json to the updates release
+        if: ${{ !contains(inputs.release_tag, '-') }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: updates
+          files: latest.json
 
       # 下载页：正式构建主区用本次信息并回写 page_state.json；
       # 测试构建主区保持 state 里的正式版，本次构建进内测区（发布卫生）
