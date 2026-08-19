@@ -1,15 +1,15 @@
 {
-  "version": "0.1.19-beta.1",
-  "notes": "· 行内适配 beta：polish 并发、synthesis 拆组、失败 KEY 强模型补救、材料包默认全开（单模型部署友好）、骨架脚本直出、若干稳定性修复",
-  "pub_date": "2026-08-18T09:51:57.475288+00:00",
+  "version": "0.1.19-beta.2",
+  "notes": "· 行内适配 beta.2：冻结 Windows terminal PYI 环境净化+超时封顶、子进程弹窗抑制、xls_flash 快报解析根因修复、提取修复证据包提速、门控分流、审查 synthesis 拆组、续跑/缓存/幽灵项目等稳定性一批",
+  "pub_date": "2026-08-19T01:41:04.194097+00:00",
   "platforms": {
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjN2WEdRWHlpY3RBZmkvdDcvRk5ib29GdWh6NWZwR01DR2tERHFoQ1d5Zy93bThDS0UyNm45M0h0QllGTnNlK0trek9HVTh5cEhrOU9Edjk0a2FRRXdFPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg3MDQ2NDI1CWZpbGU6Q3JlZGlzY29wZSBMTE0uYXBwLnRhci5negp2NjdSSS9hUHgwL0N1eDhLR0ladHJIeDNDUEozK2NXU1h6U1VCc2R6dEM4WU5SYXFPSVFQcW9hWFlHZUQ5cDVsR0RNV0NVSGVKTnpyZk1iSVRjczVBQT09Cg==",
-      "url": "https://dl.thomas0x00.uk/releases/v0.1.19-beta.1/Crediscope.LLM.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjJaOXV6YlpqSTFCenVETHFUZ2xaREZxRHlLeEdyNEp5VHJkNDNPMW1qT3VVV2VkZXBhSldmN1ljdUhyMHFqT1lrQU9PVGhxc0F0UmZ2Z2kxbEt0a3dZPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg3MTAzMzEwCWZpbGU6Q3JlZGlzY29wZSBMTE0uYXBwLnRhci5negpsck9xVTBhQlpBQ2dzQjRrZ2pPd2RpdENPREZDcFl1QmxrQnJUWGRCc2p6WDdOYmJQd2RxaXlPMU1XczRUZUVjcUl6WW9kZHZrUkJJdEF1Vno0WFNDUT09Cg==",
+      "url": "https://dl.thomas0x00.uk/releases/v0.1.19-beta.2/Crediscope.LLM.app.tar.gz"
     },
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjBlTU5TeWlXTUo4T1ZDNURBUTBCTDlYaldDV3NwZm51ejByd3BZdzNmWTF2bVR3elFRRGRPYktSYllPYzN0cjk2YkdtZTRxdDZmdUJWbHhYVHNvS2dzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg3MDQ2NjkzCWZpbGU6Q3JlZGlzY29wZSBMTE1fMC4xLjE5X3g2NC1zZXR1cC5leGUKaVVLdnFTQXZ0TzU1N2Z1em16djJmVFlvTGJXTmdpcVdJdzhyRjNhS2xTNVBUc2xkQ0FCSmZSVjR2eE1MT2FZeHRoRStYd1kzT0JrcmNJZ2lURW5DQnc9PQo=",
-      "url": "https://dl.thomas0x00.uk/releases/v0.1.19-beta.1/Crediscope.LLM_0.1.19_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjZ3YUIrNjdiWTM5SFBWVVFoMUo5L1dQR1hmdUdiQ0JMcmpsRzNkNWYxRlVBVlBqWE1sMGxkTjdPbEFqN2huOENBQytsVE12Q1gxV2FCVGljL2k4SlFjPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg3MTAzNjQwCWZpbGU6Q3JlZGlzY29wZSBMTE1fMC4xLjE5X3g2NC1zZXR1cC5leGUKOW1GYmpJVW84dTdtVXhjeVYyM0M4a0oxRmdnL1FMVjNNb0U1R2V2bG9sWHJDem93d3ovOGhXOC9tTnJ6NFdYdkhtek5GL3M3UDhZS2tMaTkzTnBFQXc9PQo=",
+      "url": "https://dl.thomas0x00.uk/releases/v0.1.19-beta.2/Crediscope.LLM_0.1.19_x64-setup.exe"
     }
   }
 }
