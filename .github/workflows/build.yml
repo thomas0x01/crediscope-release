@@ -135,6 +135,14 @@ jobs:
       - name: Install backend dependencies
         run: pip install -r src/crediscope-llm/requirements.txt pyinstaller
 
+      - name: Stamp sidecar version
+        shell: bash
+        env:
+          TAG: ${{ inputs.release_tag }}
+        # sidecar 版本戳：/api/health 透出给前端版本握手（僵尸旧进程识别，
+        # 2026-08-24 用户实证 v0.1.19 前端打 v0.1.18 后端新端点 405）
+        run: echo "VERSION = \"${TAG#v}\"" > src/crediscope-llm/build_version.py
+
       - name: Prepare sidecar
         env:
           RESOURCE_KEY_PASSPHRASE: ${{ secrets.RESOURCE_KEY_PASSPHRASE }}
@@ -233,6 +241,13 @@ jobs:
 
       - name: Install backend dependencies
         run: pip install -r src/crediscope-llm/requirements.txt pyinstaller
+
+      - name: Stamp sidecar version
+        shell: bash
+        env:
+          TAG: ${{ inputs.release_tag }}
+        # 同 macOS job：sidecar 版本戳（/api/health 透出，前端版本握手用）
+        run: echo "VERSION = \"${TAG#v}\"" > src/crediscope-llm/build_version.py
 
       - name: Prepare sidecar
         env:
