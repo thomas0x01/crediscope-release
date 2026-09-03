@@ -16,10 +16,11 @@
 ## Workflows
 
 - **`ci.yml`（Source CI）**：主仓 CI。`check`（ubuntu：py_compile +
-  import 验证 + 全量 pytest）+ `packaging-smoke`（windows：冻结 sidecar
-  构建+冒烟+mock 迷你分析）+ `status`（红绿回写主仓 commit，
-  context=`source-ci`）。内置 **wiki 新鲜度检查**：wiki_ref 落后内容仓
-  main 时发 ::warning（不阻断）。
+  import 验证 + 全量 pytest；被测 ref 含 crediscope-llm/package.json 时
+  先 setup-node + npm ci，供 jsdom 前端行为测试）+ `packaging-smoke`
+  （windows：冻结 sidecar 构建+冒烟+mock 迷你分析）+ `status`（红绿回写
+  主仓 commit，context=`source-ci`）。内置 **wiki 新鲜度检查**：
+  wiki_ref 落后内容仓 main 时发 ::warning（不阻断）。
   触发：`gh workflow run ci.yml -R thomas0x01/crediscope-release -f source_ref=main`；
   每日 02:37 UTC 兜底跑 main
 - **`build.yml`（Desktop Release）**：pytest 门禁 → mac/win 双包

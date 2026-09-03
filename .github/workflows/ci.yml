@@ -82,6 +82,21 @@ jobs:
         # mock LLM 端到端（tests/e2e/test_mock_full_analysis.py）真实跑提取管线
         run: sudo apt-get update && sudo apt-get install -y poppler-utils
 
+      # 前端 jsdom 行为测试依赖（static/js/tests/dom-* 套件，由
+      # tests/test_frontend_js.py 桥接进 pytest）。hashFiles 守卫：
+      # package.json 未合入被测 ref 前跳过，老 ref/过渡期不红。
+      - uses: actions/setup-node@v4
+        if: hashFiles('src/crediscope-llm/package.json') != ''
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: src/crediscope-llm/package-lock.json
+
+      - name: Install JS test deps (jsdom)
+        if: hashFiles('src/crediscope-llm/package.json') != ''
+        working-directory: src/crediscope-llm
+        run: npm ci
+
       - name: Syntax check
         run: |
           python -m py_compile src/crediscope-llm/server.py
