@@ -85,10 +85,12 @@ jobs:
       # 前端 jsdom 行为测试依赖（static/js/tests/dom-* 套件，由
       # tests/test_frontend_js.py 桥接进 pytest）。hashFiles 守卫：
       # package.json 未合入被测 ref 前跳过，老 ref/过渡期不红。
+      # node 钉 22：jsdom 30 engines 要 >=22（20 下 undici 报
+      # webidl.util.markAsUncloneable 缺失，2026-09-03 run 33753403026 实证）
       - uses: actions/setup-node@v4
         if: hashFiles('src/crediscope-llm/package.json') != ''
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: src/crediscope-llm/package-lock.json
 
