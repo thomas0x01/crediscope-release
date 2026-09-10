@@ -122,6 +122,23 @@ jobs:
         working-directory: src/crediscope-llm
         run: python -m pytest tests -q
 
+      # 浏览器冒烟（pw-smoke，2026-09-10）：chromium 真浏览器跑三件——
+      # 连通性巡检（Origin/Host 守卫误杀自家请求的 SEC-1 回归哨兵）、
+      # 恶意 Origin 403 负向、renderMd XSS 断言。hashFiles 守卫同 jsdom
+      # 步骤：被测 ref 未含 tests/e2e_browser 前不跑，过渡期不红。
+      # CREDISCOPE_E2E_PYTHON=python：spec 据此定位后端解释器。
+      - name: Install chromium (playwright)
+        if: hashFiles('src/crediscope-llm/tests/e2e_browser/*.spec.js') != ''
+        working-directory: src/crediscope-llm
+        run: npx playwright install --with-deps chromium
+
+      - name: Browser e2e smoke (playwright)
+        if: hashFiles('src/crediscope-llm/tests/e2e_browser/*.spec.js') != ''
+        working-directory: src/crediscope-llm
+        env:
+          CREDISCOPE_E2E_PYTHON: python
+        run: npm run test:e2e
+
   # 打包冒烟：干净 Windows runner 构建冻结 sidecar 并验证发行版专属行为
   # （shim 子进程、加密资源、中文 JSON），外加 mock LLM 迷你分析走完整
   # execute_job——这类问题 dev 环境测不到，历史上全靠发版后人工踩坑。
