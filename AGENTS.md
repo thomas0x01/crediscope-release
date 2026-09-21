@@ -20,7 +20,11 @@
   先 setup-node + npm ci，供 jsdom 前端行为测试；含 tests/e2e_browser/
   时再加 playwright chromium 浏览器冒烟——连通性巡检 + Origin 守卫负向
   + renderMd XSS）+ `packaging-smoke`
-  （windows：冻结 sidecar 构建+冒烟+mock 迷你分析）+ `status`（红绿回写
+  （windows：冻结 sidecar 构建+冒烟+mock 迷你分析）+ `pytest-windows`
+  （windows：平台专项 pytest 子集——路径/编码/子进程终止/冻结模拟等，
+  无需 poppler/node/LLM key）+ `packaging-smoke-macos`（macos：冻结
+  sidecar 构建+冒烟+mock 迷你分析，镜像 build-macos 的 sidecar 部分）
+  + `status`（红绿回写
   主仓 commit，context=`source-ci`）。内置 **wiki 新鲜度检查**：
   wiki_ref 落后内容仓 main 时发 ::warning（不阻断）。
   触发：`gh workflow run ci.yml -R thomas0x01/crediscope-release -f source_ref=main`；

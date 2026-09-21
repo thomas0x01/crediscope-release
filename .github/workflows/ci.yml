@@ -139,6 +139,53 @@ jobs:
           CREDISCOPE_E2E_PYTHON: python
         run: npm run test:e2e
 
+  # Windows 平台专项 pytest 子集（M-10，2026-09-21）：全量 pytest 只在
+  # ubuntu 跑，Windows 专属失败（2026-09-21 win dev 实测已抓到两类：
+  # 优雅终止/无窗口 pin 类）从未在 CI 验证。子集不需要 poppler/node/
+  # LLM key，跑 Windows 路径安全/编码/子进程终止/冻结模拟/上传限额/
+  # 原子写/断网守卫相关文件；全量仍由 check（ubuntu）承载。
+  pytest-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout private source
+        uses: actions/checkout@v5
+        with:
+          repository: thomas0x01/crediscope-llm
+          ref: ${{ env.SOURCE_REF }}
+          token: ${{ secrets.BUILD_PAT }}
+          path: src
+
+      # 与 packaging-smoke 同款三步：wiki 内容仓按 wiki_ref 摆回原位
+      - name: Read wiki_ref
+        id: wikiref
+        shell: bash
+        run: echo "ref=$(cat src/wiki_ref)" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout wiki content
+        uses: actions/checkout@v5
+        with:
+          repository: thomas0x01/crediscope-wiki
+          ref: ${{ steps.wikiref.outputs.ref }}
+          token: ${{ secrets.BUILD_PAT }}
+          path: wiki-content
+          sparse-checkout: wiki
+
+      - name: Place wiki content
+        shell: bash
+        run: cp -r wiki-content/wiki src/crediscope-llm/wiki
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: pip install -r src/crediscope-llm/requirements.txt
+
+      - name: Run Windows platform test subset
+        working-directory: src/crediscope-llm
+        shell: bash
+        run: python -m pytest tests/test_frozen_simulation.py tests/test_win_graceful_terminate.py tests/test_win_no_window_pins.py tests/test_path_safety.py tests/test_repair_subprocess_encoding.py tests/test_upload_limits.py tests/test_atomic_write_core.py tests/test_block_network_guard.py -q
+
   # 打包冒烟：干净 Windows runner 构建冻结 sidecar 并验证发行版专属行为
   # （shim 子进程、加密资源、中文 JSON），外加 mock LLM 迷你分析走完整
   # execute_job——这类问题 dev 环境测不到，历史上全靠发版后人工踩坑。
@@ -186,10 +233,60 @@ jobs:
       - name: Sidecar smoke test (with mini analysis)
         run: python src/desktop/scripts/sidecar_smoke.py --server src/crediscope-llm/dist/crediscope-server.exe --app-root src/crediscope-llm --mini-analysis
 
+  # macOS 冻结冒烟（M-10，2026-09-21）：此前 mac 冒烟只在发版 build.yml
+  # 的 build-macos 里跑，mac 专属 bug 历史上全靠发版后人工踩。每日 CI
+  # 加一条与 packaging-smoke（windows）对等的 mac 腿：构建冻结 sidecar +
+  # 冒烟 + mock 迷你分析。构建方式镜像 build.yml build-macos 的 sidecar
+  # 部分（prepare-sidecar.sh，只需 python+pyinstaller，不需要 Tauri/
+  # rust/node）；mac 产出无扩展名二进制 dist/crediscope-server。
+  packaging-smoke-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout private source
+        uses: actions/checkout@v5
+        with:
+          repository: thomas0x01/crediscope-llm
+          ref: ${{ env.SOURCE_REF }}
+          token: ${{ secrets.BUILD_PAT }}
+          path: src
+
+      - name: Read wiki_ref
+        id: wikiref
+        shell: bash
+        run: echo "ref=$(cat src/wiki_ref)" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout wiki content
+        uses: actions/checkout@v5
+        with:
+          repository: thomas0x01/crediscope-wiki
+          ref: ${{ steps.wikiref.outputs.ref }}
+          token: ${{ secrets.BUILD_PAT }}
+          path: wiki-content
+          sparse-checkout: wiki
+
+      - name: Place wiki content
+        shell: bash
+        run: cp -r wiki-content/wiki src/crediscope-llm/wiki
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: pip install -r src/crediscope-llm/requirements.txt pyinstaller
+
+      - name: Build sidecar
+        env:
+          RESOURCE_KEY_PASSPHRASE: ${{ secrets.RESOURCE_KEY_PASSPHRASE }}
+        run: bash src/desktop/scripts/prepare-sidecar.sh
+
+      - name: Sidecar smoke test (with mini analysis)
+        run: python3 src/desktop/scripts/sidecar_smoke.py --server src/crediscope-llm/dist/crediscope-server --app-root src/crediscope-llm --mini-analysis
+
   # 把结果回写到主仓 commit，在主仓提交列表即可看到红绿。
   # BUILD_PAT 若无 repo:status 权限则静默跳过，不影响 CI 判定。
   status:
-    needs: [check, packaging-smoke]
+    needs: [check, packaging-smoke, pytest-windows, packaging-smoke-macos]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -198,6 +295,8 @@ jobs:
           GH_TOKEN: ${{ secrets.BUILD_PAT }}
           CHECK_RESULT: ${{ needs.check.result }}
           SMOKE_RESULT: ${{ needs.packaging-smoke.result }}
+          WINPYTEST_RESULT: ${{ needs.pytest-windows.result }}
+          MACSMOKE_RESULT: ${{ needs.packaging-smoke-macos.result }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           SHA=$(gh api "repos/thomas0x01/crediscope-llm/commits/${SOURCE_REF}" --jq .sha) || SHA=""
@@ -206,10 +305,11 @@ jobs:
             exit 0
           fi
           STATE=success
-          if [ "$CHECK_RESULT" != "success" ] || [ "$SMOKE_RESULT" != "success" ]; then
+          if [ "$CHECK_RESULT" != "success" ] || [ "$SMOKE_RESULT" != "success" ] \
+             || [ "$WINPYTEST_RESULT" != "success" ] || [ "$MACSMOKE_RESULT" != "success" ]; then
             STATE=failure
           fi
           gh api "repos/thomas0x01/crediscope-llm/statuses/${SHA}" \
             -f state="$STATE" -f context="source-ci" -f target_url="$RUN_URL" \
-            -f description="hub: check=${CHECK_RESULT} smoke=${SMOKE_RESULT}" \
+            -f description="hub: check=${CHECK_RESULT} smoke=${SMOKE_RESULT} win-pytest=${WINPYTEST_RESULT} mac-smoke=${MACSMOKE_RESULT}" \
           || echo "⚠ 状态回写失败（BUILD_PAT 可能无 repo:status 权限），忽略"
