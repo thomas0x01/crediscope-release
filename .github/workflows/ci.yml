@@ -184,6 +184,12 @@ jobs:
       - name: Run Windows platform test subset
         working-directory: src/crediscope-llm
         shell: bash
+        env:
+          # 对齐生产 _build_env（冻结 shim 注入 PYTHONUTF8/PYTHONIOENCODING）：
+          # runner 默认 cp1252，测试子进程打印中文会 charmap 炸/乱码
+          # （2026-09-21 首跑 3 例编码失败实证）
+          PYTHONUTF8: "1"
+          PYTHONIOENCODING: "utf-8"
         run: python -m pytest tests/test_frozen_simulation.py tests/test_win_graceful_terminate.py tests/test_win_no_window_pins.py tests/test_path_safety.py tests/test_repair_subprocess_encoding.py tests/test_upload_limits.py tests/test_atomic_write_core.py tests/test_block_network_guard.py -q
 
   # 打包冒烟：干净 Windows runner 构建冻结 sidecar 并验证发行版专属行为
