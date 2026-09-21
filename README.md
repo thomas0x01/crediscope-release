@@ -10,7 +10,6 @@
 | --- | --- |
 | macOS（Apple Silicon） | `Crediscope.LLM_*_aarch64.dmg` |
 | Windows 安装包 | `Crediscope.LLM_*_x64-setup.exe` |
-| Windows MSI | `Crediscope.LLM_*_x64_en-US.msi` |
 
 ## 安装说明
 
