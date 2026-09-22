@@ -1,15 +1,15 @@
 {
-  "version": "0.1.29",
-  "notes": "· 本期主打·纯抓取建项目：上市公司零材料也能起跑——对话里说「新建 XX 项目，联网下载」，自动核主体、巨潮并行下载年报公告、下载完自动续跑，全程不用手工找材料。事业单位口径：医院/高校等事业单位报表可提取分析（收入费用表识别/预算会计维度/财政依赖章），建项目可选「事业单位」类型。断点续跑：审查/募集说明书中断后重开可从断点继续，已完成部分不再重烧。图表离线可用：指标图表改本地组件，境内/断网环境不再空白。worker 并发明细默认展开。修复群：报表期间提取批量阻断（幽灵期间）、政府件「万元计价」数值缩水一万倍、扫描件审查报告整稿崩溃、欠费时连环失败但错误不可见、上传超大文件无提示卡死等逐项修复。防线：上传/解压限额、CSP 加固、发布通道防 beta 污染修复。",
-  "pub_date": "2026-09-20T15:09:52.685638+00:00",
+  "version": "0.1.30",
+  "notes": "· 跨平台体验修复：Windows 拖拽上传整体失效根治（此前仅 📎 按钮可用）、macOS 输入法选词回车不再误发送、应用内链接可直接打开、Windows 取消任务干净收尾不再残留后台进程；披露件建项目引导：识别招股说明书/债券募集书/评级报告等披露文件，自动提示「法定两年及一期」口径并引导补传年报/审计报告，确认后可按现有口径继续尽调；报告修订防线：修订/重写不再丢章节（结构守卫+交付闸双防线）；Windows 安装包统一为 setup.exe（MSI 停发，升级版本比较恢复正常）；修复群：坏模板文件报错改人话指引、待合并角标不再误计搁置文件、Windows 同名大小写项目目录互串根治、稳定性与提示文案多项优化",
+  "pub_date": "2026-09-22T03:29:38.073588+00:00",
   "platforms": {
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjBLb250bSsyVk4vdUNTV1FlSmpBVmtmTVdIUVo2ODFkeWJSOUtpbDBCRnhaN2NGM3NVZUdjR3VWQU1JVzY3QmtFYWx2QjAzRk9iYmdjUm04T0g0Q0FvPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg5OTE2NzkzCWZpbGU6Q3JlZGlzY29wZSBMTE0uYXBwLnRhci5nego0VjlpQ216cnZLSjFUQXo4MjhzMy9IWThSYW1UYzJTblhmcEhZdjNjYzV6ZlgxOXFPc1JUTTRwSC8yY201OVl4SHB5SkdrdVl2WXNuczZ6enBSaktDUT09Cg==",
-      "url": "https://dl.thomas0x00.uk/releases/v0.1.29/Crediscope.LLM.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybityQU42QkRNcTJQTkkwZXk1NkhOYTRCQTB1SENmU3YybHBYUDlDOTRPaTdtc3A0eSs1OENvbUdEcGZZN1BVSFhCemZVNkJXK2NlbnNmTHJsMFFCZndzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwMDQ3MzYxCWZpbGU6Q3JlZGlzY29wZSBMTE0uYXBwLnRhci5negpNUjJHdndUeko5RzRFa1ZBVnM5c1FPK0g3RFN0Zmp5VzM5L04rWXdUQmxXa3VOcStVL1JIYjNsTDYzOElhZFpGS25kTmx0T3RiTE9mVjJka1FycTlDdz09Cg==",
+      "url": "https://dl.thomas0x00.uk/releases/v0.1.30/Crediscope.LLM.app.tar.gz"
     },
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjE3MEEwU3BTQ1hscVZQcnlCL2Jsa09lNllCYTcvVTc0YWJvVExJY1BQenpTcG1ZTURnNFVqN3RzeWtVY2RYdEFBakF1YlZEaHJHaHYzQ21EVW1UWGdBPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg5OTE2OTY5CWZpbGU6Q3JlZGlzY29wZSBMTE1fMC4xLjI5X3g2NC1zZXR1cC5leGUKak56WTU0aTJ0LzRBMzdvODk1Vi9ac2hoU2x4eFlVcVVtT3JVc2pBc2VrSUllUmsxc3ZuanFLV2NWenFYbHJHRDh0UDhmT1dDTTkvandHQUtTNnRKQlE9PQo=",
-      "url": "https://dl.thomas0x00.uk/releases/v0.1.29/Crediscope.LLM_0.1.29_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybi9QN2x4enZSVUliNEwvVHRhWnVBOWZ5dnUva1RZU2R1bGd6dnVpV0NvL1ppdzlUMzJ3YXJPREtPR0ZUREpnYms0V0gvR3ZRakl6dXJ4cGYyZEsxNGdrPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwMDQ3NzU2CWZpbGU6Q3JlZGlzY29wZSBMTE1fMC4xLjMwX3g2NC1zZXR1cC5leGUKYW14ZHpBSGVYclRKSVlpYWdFSm1hQThqUEZhalAyM0Njb09IVWdKODBHY1FjZHdHK0REMFdaeSthcmlINktJTDkwRWovbEJ1amJkZStaZjB0aVRSQnc9PQo=",
+      "url": "https://dl.thomas0x00.uk/releases/v0.1.30/Crediscope.LLM_0.1.30_x64-setup.exe"
     }
   }
 }
