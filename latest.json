@@ -1,15 +1,15 @@
 {
-  "version": "0.1.31",
-  "notes": "· 披露件数据源支持：债券募集说明书与信用评级报告可直接作为财务数据源（募集书财务章完整三表提取、评级报告主要财务数据与债务指标提取，并自动标注数据来源口径）；数字可靠性升级：报告正文数字与财务数据自动对账，数量级错误自动拦截并修复；成本优化：轻量分析环节不再消耗思维链推理费用，分析更快更省；兼容性改进：外部尽调报告作为材料不再导致任务失败，审计信息自动归集减少人工修复；修复群：材料路由超时防护与降级提醒、报告修订防丢章节、多项稳定性优化",
-  "pub_date": "2026-09-23T16:19:39.617737+00:00",
+  "version": "0.2.0",
+  "notes": "Crediscope LLM 0.2.0",
+  "pub_date": "2026-09-26T11:42:45.321326+00:00",
   "platforms": {
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybnpqVTIrNzhNSThzQ2xDNDd2cmxVU3h1TWMvVm84QXVOL25nb2lxclFGVlhFSklOUGhCNmpaTmp0UG1OY0EzL2JqUzQwWEtROE9EYkpwYUxGZ0h1UmdBPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwMTgwMTM1CWZpbGU6Q3JlZGlzY29wZSBMTE0uYXBwLnRhci5negp5aXRpVkdsQllQT0toMnJjVk9hSGFrT2ZvSnJwWUcrRjNJR296aDUzbmUxMVlNY2FMSUprVWFoSnByZUR4SE1RNGZUUHN2alZ0YUt4RTRzOTRqVStBdz09Cg==",
-      "url": "https://dl.thomas0x00.uk/releases/v0.1.31/Crediscope.LLM.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjdPSUVjTXV5RG5wclRRcTZMdSt6enEyby85UGE2L3FnUXM2TlVFN1hYcUxWMGlMOEtHR0xOeHByWmNLaG1SNjc2cVVUelp3cWNBZU5mR2I4SElXZ1E0PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwNDIyNTUzCWZpbGU6Q3JlZGlzY29wZSBMTE0uYXBwLnRhci5negpJQStjMEdzNjlEcUVSYmJ0dFBBaDZSUEd4WkZMZ0t4RVljSW56NmdLN2U5K0I5UVUyazVZcThUYzdHYXpYbGNOU0kzL1VxcFp0SGV0NXBBSHluWmlBdz09Cg==",
+      "url": "https://dl.thomas0x00.uk/releases/v0.2.0/Crediscope.LLM.app.tar.gz"
     },
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjJ1MzJyVXNQTlVtY21abnFyblNtQkRqRHBJSmNtSW1qQThiU25RRkZhQmZjY2p6VkVoc21WeVBnL1oyNDNLVllURkhwVHpnMENCRWM2SDJKaWpiT1F3PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwMTgwMzU3CWZpbGU6Q3JlZGlzY29wZSBMTE1fMC4xLjMxX3g2NC1zZXR1cC5leGUKY0Z4RUF4UWRsQUtUNjRMbzlST0xxUjFaQmZoZGhsUGs3c1hLM05vamRYSnJpNzRQcG5IV2FHTlQxMjNHVFJkTFdnalFZUE9qaUVnRzV1VG5sWHUzQWc9PQo=",
-      "url": "https://dl.thomas0x00.uk/releases/v0.1.31/Crediscope.LLM_0.1.31_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjRxWnZyTXp2aUdhS1NFVklxMUZ4L1pkQ2dYaWpNdXE1eExjYU5RMHd3T00zOGNsTTM2VEQvSE56K3l5V2QzeXRha1liLzBPeUQ2bTUrMEUrNDdpRkFvPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwNDIyOTQzCWZpbGU6Q3JlZGlzY29wZSBMTE1fMC4yLjBfeDY0LXNldHVwLmV4ZQp2T3ZlTHAxMDhqeVFmTktyeWtYSTZ1bTA4OWNUanQwa1Z2aWdoTmxUTU1qTlBTWnFRN3hYOTN1OTFLMHlxSnFUNnpNb0tIa1FUWGxralBVVXZzZEpBQT09Cg==",
+      "url": "https://dl.thomas0x00.uk/releases/v0.2.0/Crediscope.LLM_0.2.0_x64-setup.exe"
     }
   }
 }
