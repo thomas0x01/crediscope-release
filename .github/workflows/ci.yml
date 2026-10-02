@@ -39,6 +39,20 @@ jobs:
 
       # wiki 内容仓拆分（2026-08-03）：主仓不再有 wiki/，按 src/wiki_ref
       # 锚定的 ref 从内容仓拉取并摆回原位，后续步骤无感
+
+      # 行尾卫生闸（2026-10-02 beta.4 贵州建投缺章案）：hub Windows 构建机
+      # autocrlf 曾把模板 LF→CRLF 检出，加密后带 \r 进渲染管线塌掉中段章节。
+      # .gitattributes（eol=lf）是根治；本闸 fail-fast 防属性文件失效/被删。
+      - name: Guard CRLF in text resources
+        shell: bash
+        run: |
+          cd src
+          bad=$(git ls-files --eol -- '*.md' '*.json' | grep 'w/crlf' || true)
+          if [ -n "$bad" ]; then
+            echo "::error::文本资源以 CRLF 检出（.gitattributes 失效？）"
+            echo "$bad" | head -5
+            exit 1
+          fi
       - name: Read wiki_ref
         id: wikiref
         run: echo "ref=$(cat src/wiki_ref)" >> "$GITHUB_OUTPUT"
@@ -156,6 +170,20 @@ jobs:
           path: src
 
       # 与 packaging-smoke 同款三步：wiki 内容仓按 wiki_ref 摆回原位
+
+      # 行尾卫生闸（2026-10-02 beta.4 贵州建投缺章案）：hub Windows 构建机
+      # autocrlf 曾把模板 LF→CRLF 检出，加密后带 \r 进渲染管线塌掉中段章节。
+      # .gitattributes（eol=lf）是根治；本闸 fail-fast 防属性文件失效/被删。
+      - name: Guard CRLF in text resources
+        shell: bash
+        run: |
+          cd src
+          bad=$(git ls-files --eol -- '*.md' '*.json' | grep 'w/crlf' || true)
+          if [ -n "$bad" ]; then
+            echo "::error::文本资源以 CRLF 检出（.gitattributes 失效？）"
+            echo "$bad" | head -5
+            exit 1
+          fi
       - name: Read wiki_ref
         id: wikiref
         shell: bash
@@ -206,6 +234,20 @@ jobs:
           token: ${{ secrets.BUILD_PAT }}
           path: src
 
+
+      # 行尾卫生闸（2026-10-02 beta.4 贵州建投缺章案）：hub Windows 构建机
+      # autocrlf 曾把模板 LF→CRLF 检出，加密后带 \r 进渲染管线塌掉中段章节。
+      # .gitattributes（eol=lf）是根治；本闸 fail-fast 防属性文件失效/被删。
+      - name: Guard CRLF in text resources
+        shell: bash
+        run: |
+          cd src
+          bad=$(git ls-files --eol -- '*.md' '*.json' | grep 'w/crlf' || true)
+          if [ -n "$bad" ]; then
+            echo "::error::文本资源以 CRLF 检出（.gitattributes 失效？）"
+            echo "$bad" | head -5
+            exit 1
+          fi
       - name: Read wiki_ref
         id: wikiref
         shell: bash
@@ -256,6 +298,20 @@ jobs:
           token: ${{ secrets.BUILD_PAT }}
           path: src
 
+
+      # 行尾卫生闸（2026-10-02 beta.4 贵州建投缺章案）：hub Windows 构建机
+      # autocrlf 曾把模板 LF→CRLF 检出，加密后带 \r 进渲染管线塌掉中段章节。
+      # .gitattributes（eol=lf）是根治；本闸 fail-fast 防属性文件失效/被删。
+      - name: Guard CRLF in text resources
+        shell: bash
+        run: |
+          cd src
+          bad=$(git ls-files --eol -- '*.md' '*.json' | grep 'w/crlf' || true)
+          if [ -n "$bad" ]; then
+            echo "::error::文本资源以 CRLF 检出（.gitattributes 失效？）"
+            echo "$bad" | head -5
+            exit 1
+          fi
       - name: Read wiki_ref
         id: wikiref
         shell: bash
