@@ -209,7 +209,7 @@ jobs:
           targets: aarch64-apple-darwin
 
       - name: Install backend dependencies
-        run: pip install -r src/crediscope-llm/requirements.txt pyinstaller
+        run: pip install -r src/crediscope-llm/requirements.txt pyinstaller cython
 
       - name: Stamp sidecar version
         shell: bash
@@ -347,7 +347,7 @@ jobs:
           targets: x86_64-pc-windows-msvc
 
       - name: Install backend dependencies
-        run: pip install -r src/crediscope-llm/requirements.txt pyinstaller
+        run: pip install -r src/crediscope-llm/requirements.txt pyinstaller cython
 
       - name: Stamp sidecar version
         shell: bash
