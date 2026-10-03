@@ -65,9 +65,10 @@ jobs:
           # 迭代 exit 0——闸自上线以来纯空洞通过。改 cd 到 app 根+清单
           # 捕获失败即 exit 1（fail-closed）。
           cd src/crediscope-llm
-          files=$(python -c "from pathlib import Path; import sys; sys.path.insert(0,'.'); from scripts.encrypt_resources import discover_resources; [print(p.relative_to(Path.cwd())) for p in discover_resources()]") || { echo "::error::保真闸清单生成失败（discover_resources 不可导入）"; exit 1; }
+          files=$(python -c "from pathlib import Path; import sys; sys.path.insert(0,'.'); sys.stdout.reconfigure(newline='\n'); from scripts.encrypt_resources import discover_resources; [print(p.relative_to(Path.cwd())) for p in discover_resources()]") || { echo "::error::保真闸清单生成失败（discover_resources 不可导入）"; exit 1; }
           fail=0
           while IFS= read -r f; do
+            f="${f%$'\r'}"
             [ -n "$f" ] || continue
             # HEAD:./ 前缀：$f 相对 app 根（cwd），git 缺省从仓库根解析——
             # 37131387023 实证 59 条假阳性，且仓库根同名 AGENTS.md 会撞错
@@ -183,9 +184,10 @@ jobs:
           # 迭代 exit 0——闸自上线以来纯空洞通过。改 cd 到 app 根+清单
           # 捕获失败即 exit 1（fail-closed）。
           cd src/crediscope-llm
-          files=$(python -c "from pathlib import Path; import sys; sys.path.insert(0,'.'); from scripts.encrypt_resources import discover_resources; [print(p.relative_to(Path.cwd())) for p in discover_resources()]") || { echo "::error::保真闸清单生成失败（discover_resources 不可导入）"; exit 1; }
+          files=$(python -c "from pathlib import Path; import sys; sys.path.insert(0,'.'); sys.stdout.reconfigure(newline='\n'); from scripts.encrypt_resources import discover_resources; [print(p.relative_to(Path.cwd())) for p in discover_resources()]") || { echo "::error::保真闸清单生成失败（discover_resources 不可导入）"; exit 1; }
           fail=0
           while IFS= read -r f; do
+            f="${f%$'\r'}"
             [ -n "$f" ] || continue
             # HEAD:./ 前缀：$f 相对 app 根（cwd），git 缺省从仓库根解析——
             # 37131387023 实证 59 条假阳性，且仓库根同名 AGENTS.md 会撞错
@@ -330,9 +332,10 @@ jobs:
           # 迭代 exit 0——闸自上线以来纯空洞通过。改 cd 到 app 根+清单
           # 捕获失败即 exit 1（fail-closed）。
           cd src/crediscope-llm
-          files=$(python -c "from pathlib import Path; import sys; sys.path.insert(0,'.'); from scripts.encrypt_resources import discover_resources; [print(p.relative_to(Path.cwd())) for p in discover_resources()]") || { echo "::error::保真闸清单生成失败（discover_resources 不可导入）"; exit 1; }
+          files=$(python -c "from pathlib import Path; import sys; sys.path.insert(0,'.'); sys.stdout.reconfigure(newline='\n'); from scripts.encrypt_resources import discover_resources; [print(p.relative_to(Path.cwd())) for p in discover_resources()]") || { echo "::error::保真闸清单生成失败（discover_resources 不可导入）"; exit 1; }
           fail=0
           while IFS= read -r f; do
+            f="${f%$'\r'}"
             [ -n "$f" ] || continue
             # HEAD:./ 前缀：$f 相对 app 根（cwd），git 缺省从仓库根解析——
             # 37131387023 实证 59 条假阳性，且仓库根同名 AGENTS.md 会撞错
@@ -476,9 +479,10 @@ jobs:
           # 迭代 exit 0——闸自上线以来纯空洞通过。改 cd 到 app 根+清单
           # 捕获失败即 exit 1（fail-closed）。
           cd src/crediscope-llm
-          files=$(python -c "from pathlib import Path; import sys; sys.path.insert(0,'.'); from scripts.encrypt_resources import discover_resources; [print(p.relative_to(Path.cwd())) for p in discover_resources()]") || { echo "::error::保真闸清单生成失败（discover_resources 不可导入）"; exit 1; }
+          files=$(python -c "from pathlib import Path; import sys; sys.path.insert(0,'.'); sys.stdout.reconfigure(newline='\n'); from scripts.encrypt_resources import discover_resources; [print(p.relative_to(Path.cwd())) for p in discover_resources()]") || { echo "::error::保真闸清单生成失败（discover_resources 不可导入）"; exit 1; }
           fail=0
           while IFS= read -r f; do
+            f="${f%$'\r'}"
             [ -n "$f" ] || continue
             # HEAD:./ 前缀：$f 相对 app 根（cwd），git 缺省从仓库根解析——
             # 37131387023 实证 59 条假阳性，且仓库根同名 AGENTS.md 会撞错
