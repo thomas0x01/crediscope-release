@@ -60,7 +60,13 @@ jobs:
       - name: Resource fidelity vs git blobs
         shell: bash
         run: |
-          cd src
+          # 二轮蓝队 2026-10-03 旁发现修复：原 `cd src` 后 import
+          # scripts.encrypt_resources 必 ModuleNotFoundError（真身在
+          # src/crediscope-llm/scripts/），且 < <(...) 失败不传播→while 零
+          # 迭代 exit 0——闸自上线以来纯空洞通过。改 cd 到 app 根+清单
+          # 捕获失败即 exit 1（fail-closed）。
+          cd src/crediscope-llm
+          files=$(python -c "from pathlib import Path; import sys; sys.path.insert(0,'.'); from scripts.encrypt_resources import discover_resources; [print(p.relative_to(Path.cwd())) for p in discover_resources()]") || { echo "::error::保真闸清单生成失败（discover_resources 不可导入）"; exit 1; }
           fail=0
           while IFS= read -r f; do
             [ -n "$f" ] || continue
@@ -68,7 +74,7 @@ jobs:
               echo "::error::资源保真对账失败：$f 工作区与 git blob 不一致（checkout 污染？）"
               fail=1
             fi
-          done < <(python -c "from pathlib import Path; import sys; sys.path.insert(0,'.'); from scripts.encrypt_resources import discover_resources; [print(p.relative_to(Path.cwd())) for p in discover_resources()]")
+          done <<< "$files"
           exit $fail
       - name: Read wiki_ref
         id: wikiref
@@ -208,7 +214,13 @@ jobs:
       - name: Resource fidelity vs git blobs
         shell: bash
         run: |
-          cd src
+          # 二轮蓝队 2026-10-03 旁发现修复：原 `cd src` 后 import
+          # scripts.encrypt_resources 必 ModuleNotFoundError（真身在
+          # src/crediscope-llm/scripts/），且 < <(...) 失败不传播→while 零
+          # 迭代 exit 0——闸自上线以来纯空洞通过。改 cd 到 app 根+清单
+          # 捕获失败即 exit 1（fail-closed）。
+          cd src/crediscope-llm
+          files=$(python -c "from pathlib import Path; import sys; sys.path.insert(0,'.'); from scripts.encrypt_resources import discover_resources; [print(p.relative_to(Path.cwd())) for p in discover_resources()]") || { echo "::error::保真闸清单生成失败（discover_resources 不可导入）"; exit 1; }
           fail=0
           while IFS= read -r f; do
             [ -n "$f" ] || continue
@@ -216,7 +228,7 @@ jobs:
               echo "::error::资源保真对账失败：$f 工作区与 git blob 不一致（checkout 污染？）"
               fail=1
             fi
-          done < <(python -c "from pathlib import Path; import sys; sys.path.insert(0,'.'); from scripts.encrypt_resources import discover_resources; [print(p.relative_to(Path.cwd())) for p in discover_resources()]")
+          done <<< "$files"
           exit $fail
       - name: Read wiki_ref
         id: wikiref
@@ -289,7 +301,13 @@ jobs:
       - name: Resource fidelity vs git blobs
         shell: bash
         run: |
-          cd src
+          # 二轮蓝队 2026-10-03 旁发现修复：原 `cd src` 后 import
+          # scripts.encrypt_resources 必 ModuleNotFoundError（真身在
+          # src/crediscope-llm/scripts/），且 < <(...) 失败不传播→while 零
+          # 迭代 exit 0——闸自上线以来纯空洞通过。改 cd 到 app 根+清单
+          # 捕获失败即 exit 1（fail-closed）。
+          cd src/crediscope-llm
+          files=$(python -c "from pathlib import Path; import sys; sys.path.insert(0,'.'); from scripts.encrypt_resources import discover_resources; [print(p.relative_to(Path.cwd())) for p in discover_resources()]") || { echo "::error::保真闸清单生成失败（discover_resources 不可导入）"; exit 1; }
           fail=0
           while IFS= read -r f; do
             [ -n "$f" ] || continue
@@ -297,7 +315,7 @@ jobs:
               echo "::error::资源保真对账失败：$f 工作区与 git blob 不一致（checkout 污染？）"
               fail=1
             fi
-          done < <(python -c "from pathlib import Path; import sys; sys.path.insert(0,'.'); from scripts.encrypt_resources import discover_resources; [print(p.relative_to(Path.cwd())) for p in discover_resources()]")
+          done <<< "$files"
           exit $fail
       - name: Read wiki_ref
         id: wikiref
@@ -322,7 +340,7 @@ jobs:
           python-version: '3.13'
 
       - name: Install backend dependencies
-        run: pip install -r src/crediscope-llm/requirements.txt pyinstaller cython
+        run: pip install -r src/crediscope-llm/requirements.txt pyinstaller 'cython==3.3.*'
 
       - name: Build sidecar
         env:
@@ -370,7 +388,13 @@ jobs:
       - name: Resource fidelity vs git blobs
         shell: bash
         run: |
-          cd src
+          # 二轮蓝队 2026-10-03 旁发现修复：原 `cd src` 后 import
+          # scripts.encrypt_resources 必 ModuleNotFoundError（真身在
+          # src/crediscope-llm/scripts/），且 < <(...) 失败不传播→while 零
+          # 迭代 exit 0——闸自上线以来纯空洞通过。改 cd 到 app 根+清单
+          # 捕获失败即 exit 1（fail-closed）。
+          cd src/crediscope-llm
+          files=$(python -c "from pathlib import Path; import sys; sys.path.insert(0,'.'); from scripts.encrypt_resources import discover_resources; [print(p.relative_to(Path.cwd())) for p in discover_resources()]") || { echo "::error::保真闸清单生成失败（discover_resources 不可导入）"; exit 1; }
           fail=0
           while IFS= read -r f; do
             [ -n "$f" ] || continue
@@ -378,7 +402,7 @@ jobs:
               echo "::error::资源保真对账失败：$f 工作区与 git blob 不一致（checkout 污染？）"
               fail=1
             fi
-          done < <(python -c "from pathlib import Path; import sys; sys.path.insert(0,'.'); from scripts.encrypt_resources import discover_resources; [print(p.relative_to(Path.cwd())) for p in discover_resources()]")
+          done <<< "$files"
           exit $fail
       - name: Read wiki_ref
         id: wikiref
@@ -403,7 +427,7 @@ jobs:
           python-version: '3.13'
 
       - name: Install backend dependencies
-        run: pip install -r src/crediscope-llm/requirements.txt pyinstaller cython
+        run: pip install -r src/crediscope-llm/requirements.txt pyinstaller 'cython==3.3.*'
 
       - name: Build sidecar
         env:
