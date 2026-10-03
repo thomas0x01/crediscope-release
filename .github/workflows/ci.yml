@@ -53,6 +53,23 @@ jobs:
             echo "$bad" | head -5
             exit 1
           fi
+
+      # 资源保真对账（2026-10-03 backlog①，beta.4 CRLF 案复盘定谳）：加密源
+      # 工作区文件必须与 git blob 逐字节一致——行尾闸只盯 CRLF，本对账网住
+      # 一切「构建机工作区≠仓库源」类漂移（大小 508B 的 CRLF 案即栽在此处）。
+      - name: Resource fidelity vs git blobs
+        shell: bash
+        run: |
+          cd src
+          fail=0
+          while IFS= read -r f; do
+            [ -n "$f" ] || continue
+            if ! git show "HEAD:$f" | cmp -s - "$f"; then
+              echo "::error::资源保真对账失败：$f 工作区与 git blob 不一致（checkout 污染？）"
+              fail=1
+            fi
+          done < <(python -c "from pathlib import Path; import sys; sys.path.insert(0,'.'); from scripts.encrypt_resources import discover_resources; [print(p.relative_to(Path.cwd())) for p in discover_resources()]")
+          exit $fail
       - name: Read wiki_ref
         id: wikiref
         run: echo "ref=$(cat src/wiki_ref)" >> "$GITHUB_OUTPUT"
@@ -184,6 +201,23 @@ jobs:
             echo "$bad" | head -5
             exit 1
           fi
+
+      # 资源保真对账（2026-10-03 backlog①，beta.4 CRLF 案复盘定谳）：加密源
+      # 工作区文件必须与 git blob 逐字节一致——行尾闸只盯 CRLF，本对账网住
+      # 一切「构建机工作区≠仓库源」类漂移（大小 508B 的 CRLF 案即栽在此处）。
+      - name: Resource fidelity vs git blobs
+        shell: bash
+        run: |
+          cd src
+          fail=0
+          while IFS= read -r f; do
+            [ -n "$f" ] || continue
+            if ! git show "HEAD:$f" | cmp -s - "$f"; then
+              echo "::error::资源保真对账失败：$f 工作区与 git blob 不一致（checkout 污染？）"
+              fail=1
+            fi
+          done < <(python -c "from pathlib import Path; import sys; sys.path.insert(0,'.'); from scripts.encrypt_resources import discover_resources; [print(p.relative_to(Path.cwd())) for p in discover_resources()]")
+          exit $fail
       - name: Read wiki_ref
         id: wikiref
         shell: bash
@@ -248,6 +282,23 @@ jobs:
             echo "$bad" | head -5
             exit 1
           fi
+
+      # 资源保真对账（2026-10-03 backlog①，beta.4 CRLF 案复盘定谳）：加密源
+      # 工作区文件必须与 git blob 逐字节一致——行尾闸只盯 CRLF，本对账网住
+      # 一切「构建机工作区≠仓库源」类漂移（大小 508B 的 CRLF 案即栽在此处）。
+      - name: Resource fidelity vs git blobs
+        shell: bash
+        run: |
+          cd src
+          fail=0
+          while IFS= read -r f; do
+            [ -n "$f" ] || continue
+            if ! git show "HEAD:$f" | cmp -s - "$f"; then
+              echo "::error::资源保真对账失败：$f 工作区与 git blob 不一致（checkout 污染？）"
+              fail=1
+            fi
+          done < <(python -c "from pathlib import Path; import sys; sys.path.insert(0,'.'); from scripts.encrypt_resources import discover_resources; [print(p.relative_to(Path.cwd())) for p in discover_resources()]")
+          exit $fail
       - name: Read wiki_ref
         id: wikiref
         shell: bash
@@ -312,6 +363,23 @@ jobs:
             echo "$bad" | head -5
             exit 1
           fi
+
+      # 资源保真对账（2026-10-03 backlog①，beta.4 CRLF 案复盘定谳）：加密源
+      # 工作区文件必须与 git blob 逐字节一致——行尾闸只盯 CRLF，本对账网住
+      # 一切「构建机工作区≠仓库源」类漂移（大小 508B 的 CRLF 案即栽在此处）。
+      - name: Resource fidelity vs git blobs
+        shell: bash
+        run: |
+          cd src
+          fail=0
+          while IFS= read -r f; do
+            [ -n "$f" ] || continue
+            if ! git show "HEAD:$f" | cmp -s - "$f"; then
+              echo "::error::资源保真对账失败：$f 工作区与 git blob 不一致（checkout 污染？）"
+              fail=1
+            fi
+          done < <(python -c "from pathlib import Path; import sys; sys.path.insert(0,'.'); from scripts.encrypt_resources import discover_resources; [print(p.relative_to(Path.cwd())) for p in discover_resources()]")
+          exit $fail
       - name: Read wiki_ref
         id: wikiref
         shell: bash
