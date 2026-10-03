@@ -1,15 +1,15 @@
 {
-  "version": "0.2.2",
-  "notes": "· 信贷档案主文档：补充材料后分钟级增量更新，免整跑\n· 财务勾稽核验：四族交叉核对自动执行，矛盾数据自动进疑点\n· ROD 偿债能力测算单：七环节结构化测算接入综合授信决策\n· 疑点调查回路：定调疑点自动分批调查并机械验收\n· worker 异常中断后断点续跑不重来\n· 界面收敛：材料入口归位/增量进度可辨/拖拽上传/重复上传提示/术语去黑话\n· 修复中报增量更新后快照表不重渲等多处断点",
-  "pub_date": "2026-09-29T13:15:14.653780+00:00",
+  "version": "0.2.3",
+  "notes": "Crediscope LLM 0.2.3",
+  "pub_date": "2026-10-03T06:34:30.844175+00:00",
   "platforms": {
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjFZUnJCUDFvUTFIeStoYVhOWVRaUlpRZHN0ZEx4NXo1L0lHV3BNdWRnYUtneTQwaDFBbmQzNnJBbjJZbEZzU3V3bC9DWkpTYjBhNE52L21NM0k2QlFVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwNjg3MjgxCWZpbGU6Q3JlZGlzY29wZSBMTE0uYXBwLnRhci5negpCVEp4OGt3a0ljbHBCemFkZG9GWE1meG5wenJwa2hWUDBqTndlL3VXTjJXaEw2YTBXQkJwL2M4aEJOMEpkWk1zN2d0VmNGcmVNbk1SZWV5MzAvVVlBUT09Cg==",
-      "url": "https://dl.thomas0x00.uk/releases/v0.2.2/Crediscope.LLM.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjV2Qlp4M1lQeVp0MFJ4aDVlNThLTW03M1RVVHBKTVFramZ5b2d4U3BKb0EzbFYrM2lObTBCVFVmaWF5T25EWnVBem1jWlV2Vlh2NEV3dUdXby9KUEFnPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkxMDA5MjQwCWZpbGU6Q3JlZGlzY29wZSBMTE0uYXBwLnRhci5nego2dlNrdjdiNUo0dkF1Tk5uNVVlUHdORnhjd000MTNYUG91czVYN3VUZlB2MXJ6eExncDJGSXc0ckRxenJWaG05bDJCQklJeEdETlIzTFJrb2ozcnBBZz09Cg==",
+      "url": "https://dl.thomas0x00.uk/releases/v0.2.3/Crediscope.LLM.app.tar.gz"
     },
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjhrSVV1QkF6a1NEYzYxSjlZYTNLYnpzRCtVeDFJams3U3dpSW1zUUVSSzlPQmZ4L0RhNUVVRnpDV2VicGYzYW1ZS3JaUXprUkZkRWc0Ui8rYTRBN3dVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwNjg3NjU1CWZpbGU6Q3JlZGlzY29wZSBMTE1fMC4yLjJfeDY0LXNldHVwLmV4ZQpPNGgrMVlDaG93UTh0VFZFSjAwVzdLVzRFdVJwd1prY09xdHkyN3BJTUFTZUEzMmkzdk9tcDZGQzhRZ1dEb3BCd0U5RndlM1dvMmMzS0JCbHlhb1ZDUT09Cg==",
-      "url": "https://dl.thomas0x00.uk/releases/v0.2.2/Crediscope.LLM_0.2.2_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjY4TGl3dWJINjlmTzhFL0ZVNGIzT2pjWVdsS2piU1dCd3BwK1V0N2tOYVlBNktsazB6VGJmc0d0NXptd1ZHWk5KSkRWNjZ2dEpCcFptRDlPR1c2R2dBPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkxMDA5MjM3CWZpbGU6Q3JlZGlzY29wZSBMTE1fMC4yLjNfeDY0LXNldHVwLmV4ZQpiUStLU3pOWUxHR1BKbEFIYk84ZE1mV1AwdmlQTEVyYkJ5elJweUxHN1dya2hHMkdYWEc3TjZIS1JVVnhpazJnSW5oWEoyOEd5OXZXdWtvaEl5K0NBZz09Cg==",
+      "url": "https://dl.thomas0x00.uk/releases/v0.2.3/Crediscope.LLM_0.2.3_x64-setup.exe"
     }
   }
 }
