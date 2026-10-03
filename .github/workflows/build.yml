@@ -69,7 +69,10 @@ jobs:
           fail=0
           while IFS= read -r f; do
             [ -n "$f" ] || continue
-            if ! git show "HEAD:$f" | cmp -s - "$f"; then
+            # HEAD:./ 前缀：$f 相对 app 根（cwd），git 缺省从仓库根解析——
+            # 37131387023 实证 59 条假阳性，且仓库根同名 AGENTS.md 会撞错
+            # blob 静默错比（git hint 原文背书 ./ 相对形态）
+            if ! git show "HEAD:./$f" | cmp -s - "$f"; then
               echo "::error::资源保真对账失败：$f 工作区与 git blob 不一致（checkout 污染？）"
               fail=1
             fi
@@ -184,7 +187,10 @@ jobs:
           fail=0
           while IFS= read -r f; do
             [ -n "$f" ] || continue
-            if ! git show "HEAD:$f" | cmp -s - "$f"; then
+            # HEAD:./ 前缀：$f 相对 app 根（cwd），git 缺省从仓库根解析——
+            # 37131387023 实证 59 条假阳性，且仓库根同名 AGENTS.md 会撞错
+            # blob 静默错比（git hint 原文背书 ./ 相对形态）
+            if ! git show "HEAD:./$f" | cmp -s - "$f"; then
               echo "::error::资源保真对账失败：$f 工作区与 git blob 不一致（checkout 污染？）"
               fail=1
             fi
@@ -328,7 +334,10 @@ jobs:
           fail=0
           while IFS= read -r f; do
             [ -n "$f" ] || continue
-            if ! git show "HEAD:$f" | cmp -s - "$f"; then
+            # HEAD:./ 前缀：$f 相对 app 根（cwd），git 缺省从仓库根解析——
+            # 37131387023 实证 59 条假阳性，且仓库根同名 AGENTS.md 会撞错
+            # blob 静默错比（git hint 原文背书 ./ 相对形态）
+            if ! git show "HEAD:./$f" | cmp -s - "$f"; then
               echo "::error::资源保真对账失败：$f 工作区与 git blob 不一致（checkout 污染？）"
               fail=1
             fi
@@ -471,7 +480,10 @@ jobs:
           fail=0
           while IFS= read -r f; do
             [ -n "$f" ] || continue
-            if ! git show "HEAD:$f" | cmp -s - "$f"; then
+            # HEAD:./ 前缀：$f 相对 app 根（cwd），git 缺省从仓库根解析——
+            # 37131387023 实证 59 条假阳性，且仓库根同名 AGENTS.md 会撞错
+            # blob 静默错比（git hint 原文背书 ./ 相对形态）
+            if ! git show "HEAD:./$f" | cmp -s - "$f"; then
               echo "::error::资源保真对账失败：$f 工作区与 git blob 不一致（checkout 污染？）"
               fail=1
             fi
