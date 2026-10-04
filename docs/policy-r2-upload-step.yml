@@ -1,0 +1,54 @@
+# r2-upload-step.snippet.yml — hub 仓 build.yml 的政策上传 step 草稿
+#
+# 这是「主仓分支交付、回合后由主会话搬进 hub 仓」的件（本文件不是
+# workflow，不会被误触发）。设计出处：docs/签名政策运维.md。
+# 脚本真身在主仓 desktop/scripts/policy/（hub build.yml 已 checkout
+# 私有源码到 src/，路径即 src/desktop/scripts/policy/*.py）。
+#
+# 位置建议：publish-manifest job 的「Upload to R2」step 之后追加。
+# 密钥注入沿用签更新制品的同一组 secrets（TAURI_SIGNING_PRIVATE_KEY /
+# TAURI_SIGNING_PRIVATE_KEY_PASSWORD），零新增秘密。
+#
+# 两种接法（二选一，先手工后自动）：
+#
+# ── 接法 A：手工触发（推荐起步，policy 属低频高危操作）──────────────
+#    不进 build.yml。运维本机跑：
+#      python3 desktop/scripts/policy/gen_policy.py --out /tmp/policy.json [...]
+#      python3 desktop/scripts/policy/sign_policy.py sign --in /tmp/policy.json
+#      python3 desktop/scripts/policy/sign_policy.py verify --in /tmp/policy.json \
+#          --sig /tmp/policy.json.sig --pubkey-conf desktop/src-tauri/tauri.conf.json
+#    然后 aws s3 cp 两个文件到 R2 根（见下方命令行）+ 附加到 updates release。
+#
+# ── 接法 B：随发版自动重签（政策文件入库随构建）──────────────────────
+#    policy.json 入 hub 仓（本 step 只做签名+验签+上传）：
+
+  - name: Sign & upload policy.json (version gate / kill-switch)
+    if: ${{ !contains(inputs.release_tag, '-') }}
+    env:
+      TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+      TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+      R2_BUCKET: ${{ secrets.R2_BUCKET }}
+    run: |
+      export AWS_EC2_METADATA_DISABLED=true
+      EP="https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
+      # 签名（tauri CLI 自动探测：npx --no-install @tauri-apps/cli）
+      python3 src/desktop/scripts/policy/sign_policy.py sign \
+        --in policy.json --tauri-cli "npx" --out policy.json.sig
+      # 上传前门禁：验签必须过（公钥=客户端 updater 同款），失败即断
+      python3 src/desktop/scripts/policy/sign_policy.py verify \
+        --in policy.json --sig policy.json.sig \
+        --pubkey-conf src/desktop/src-tauri/tauri.conf.json
+      aws s3 cp policy.json "s3://${R2_BUCKET}/policy.json" --endpoint-url "$EP"
+      aws s3 cp policy.json.sig "s3://${R2_BUCKET}/policy.json.sig" --endpoint-url "$EP"
+      # GitHub 镜像端点：附加到 updates release（latest.json 同款通道）
+      gh release upload updates policy.json policy.json.sig --clobber \
+        -R thomas0x01/crediscope-release
+
+# 提醒：
+# - policy.json 的修改走「生成→签名→上传」全链，不要手改已签名文件
+#   （改一个空格签名即失效，客户端验签不过会当坏件退缓存/放行）。
+# - 回滚政策=重新生成上一版签名件再上传，用户端点「重新检查」或重启
+#   即恢复（离线用户以本地缓存为准，最长等下次联网检查）。
