@@ -1,0 +1,188 @@
+name: Policy Channel
+
+# 签名政策通道件（版本门 + 合规 kill-switch）的生成→签名→验签→上传。
+# 出处：主仓 docs/签名政策运维.md（接法 A 手工起步 + 密钥零落地——
+# TAURI_SIGNING_PRIVATE_KEY 只存在于 runner 内存，本地不出钥匙）。
+# policy 属低频高危操作：手动触发，默认参数=布点态（min_supported=0.0.0、
+# blocked=[]），零行为变化；真要拦人时显式传参。
+#
+# 上传目标=客户端推导的同一双端点（policy.rs 把 updater endpoints 的
+# latest.json 换名 policy.json）：
+#   1) R2 桶根 policy.json / policy.json.sig（dl.thomas0x00.uk）
+#   2) updates release 附件（GitHub 镜像端点）
+#
+# 上传前门禁（三道）：
+#   a. 生成后 --check 字段门禁；
+#   b. 公钥钉死对账——source_ref 的 tauri.conf.json pubkey 必须与下方
+#      PINNED_PUBKEY 逐字一致（防「私钥轮换窗口」：conf 换了钥匙、已发
+#      客户端还是旧公钥，verify 照绿但全体客户端验签断链）；
+#      轮换 updater 钥匙时同步更新此常量并重发客户端。
+#   c. sign_policy.py verify 复算两道签名，失败即断。
+#
+# 上传后对账：双端点 GET 回读 sha256 与本地一致才收工（防半部署态——
+# kill-switch 停用/回滚的覆盖完整性依赖双端点同步）。
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: '主仓 ref（policy 工具与 updater 公钥来源）'
+        required: true
+        default: 'main'
+      min_supported:
+        description: '最低支持版本 X.Y.Z（空=0.0.0 布点态不拦）'
+        required: false
+        default: ''
+      blocked:
+        description: '停用条目 VERSION:REASON:MESSAGE，多条用 | 分隔（空=无）'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+# 政策通道同一时刻只允许一个部署在飞。排队而非取消（蓝队 2026-10-05
+# N1）：cancel-in-progress 会把取消点落在 R2/release 两笔上传之间，恰好
+# 制造半部署态且被取消的 run 不跑对账——部署类 job 的标准并发语义是
+# 串行排队、每个 run 完整走完上传+对账，最后写的胜出。
+concurrency:
+  group: policy-channel
+  cancel-in-progress: false
+
+jobs:
+  policy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout private source
+        uses: actions/checkout@v5
+        with:
+          repository: thomas0x01/crediscope-llm
+          ref: ${{ inputs.source_ref }}
+          token: ${{ secrets.BUILD_PAT }}
+          path: src
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # 只装 signer 用 CLI，不拉整个 desktop 工程依赖；钉大版本防漂移
+      # （格式若真漂了，verify 的字节级复算也会当场 fail，坏件上不了线）
+      - name: Install tauri CLI (signer)
+        run: npm install @tauri-apps/cli@^2
+
+      - name: Generate policy.json
+        env:
+          MIN_SUPPORTED: ${{ inputs.min_supported }}
+          BLOCKED: ${{ inputs.blocked }}
+        run: |
+          args=()
+          if [ -n "$MIN_SUPPORTED" ]; then
+            args+=(--min-supported "$MIN_SUPPORTED")
+          fi
+          if [ -n "$BLOCKED" ]; then
+            IFS='|' read -ra entries <<< "$BLOCKED"
+            for e in "${entries[@]}"; do
+              [ -n "$e" ] && args+=(--blocked "$e")
+            done
+          fi
+          python3 src/desktop/scripts/policy/gen_policy.py --out policy.json "${args[@]}"
+          # 生成后立即自检（字段门禁），并打印全文留档在 run log
+          python3 src/desktop/scripts/policy/gen_policy.py --check policy.json
+          cat policy.json
+
+      # 门禁 b：公钥钉死对账（红队 2026-10-05 发现 #1）。公钥是公开值
+      # （随客户端二进制分发），钉在此处无泄密面。
+      - name: "Gate: pinned updater pubkey matches source_ref"
+        env:
+          PINNED_PUBKEY: 'dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDlGRUI4NDk0NjIzNDNDNkUKUldSdVBEUmlsSVRybndHNXJ0WHRRbTZxZDNsQkE1bFNMSzRRbkUrWjJTTlU1ZkhFVzJhNFRFOGgK'
+        run: |
+          conf_pub=$(python3 -c "import json;print(json.load(open('src/desktop/src-tauri/tauri.conf.json'))['plugins']['updater']['pubkey'].strip())")
+          if [ "$conf_pub" != "$PINNED_PUBKEY" ]; then
+            echo "::error::tauri.conf.json 公钥与钉死值不一致——updater 钥匙轮换窗口？先更新本 workflow 的 PINNED_PUBKEY 并确认客户端随新版发出，再部署政策"
+            exit 1
+          fi
+          echo "公钥对账通过（与已发客户端同把）"
+
+      - name: Sign policy.json
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          python3 src/desktop/scripts/policy/sign_policy.py sign --in policy.json
+          echo "policy.json.sig 已产出（内容不回显）"
+
+      - name: Verify signature (upload gate)
+        run: |
+          python3 src/desktop/scripts/policy/sign_policy.py verify \
+            --in policy.json --sig policy.json.sig \
+            --pubkey-conf src/desktop/src-tauri/tauri.conf.json
+
+      # 先落 .sig 再落载荷：中间态顶多是「旧 json+新 sig」（客户端验签
+      # 不过退缓存放行），反过来才是「新 json+旧 sig」的错配窗口
+      - name: Upload to R2 (primary endpoint)
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+        run: |
+          export AWS_EC2_METADATA_DISABLED=true
+          EP="https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
+          # no-cache：kill-switch 与回滚都等不起边缘缓存两小时
+          # （latest.json 沿用默认缓存是既有语义，policy 通道单独收紧）
+          aws s3 cp policy.json.sig "s3://${R2_BUCKET}/policy.json.sig" \
+            --endpoint-url "$EP" --cache-control "no-cache"
+          aws s3 cp policy.json "s3://${R2_BUCKET}/policy.json" \
+            --endpoint-url "$EP" --cache-control "no-cache"
+
+      - name: Attach to updates release (mirror endpoint)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # updates release 由 build.yml 维护，正常在场；被删则当场重建兜底
+          # （蓝队 N2：--latest=false 必须——裸 create 属正式 release 且时间
+          # 最新，会被自动标 Latest 抢占 v0.2.5 的下载站位）
+          gh release view updates -R thomas0x01/crediscope-release >/dev/null 2>&1 \
+            || gh release create updates -R thomas0x01/crediscope-release \
+                 --latest=false --title "Updater channel" --notes "latest.json / policy.json 镜像端点"
+          # 参数序=sig 先载荷后（与 R2 端同理由：错配中间态顶多是旧 json+
+          # 新 sig，客户端验签不过退缓存放行）。附加偶发失败重试一次
+          # （半部署对账兜底在下一步）
+          gh release upload updates policy.json.sig policy.json --clobber \
+            -R thomas0x01/crediscope-release \
+            || gh release upload updates policy.json.sig policy.json --clobber \
+                 -R thomas0x01/crediscope-release
+
+      # 上传后对账（红队 #3 + 蓝队 N3/N4）：双端点 × 双件（json+sig）回读
+      # sha256 必须与本地一致——「传上 json 倒在 sig」或「R2 成功 + release
+      # 失败」的半部署态在此翻红；末尾再对两个裸 URL（无 cache-buster）
+      # 各读一次——no-cache 对象每次回源，裸读即客户端真实所见
+      - name: Reconcile both endpoints
+        run: |
+          local_json=$(sha256sum policy.json | cut -d' ' -f1)
+          local_sig=$(sha256sum policy.json.sig | cut -d' ' -f1)
+          check() {
+            remote=$(curl -fsSL "$1" | sha256sum | cut -d' ' -f1)
+            if [ "$remote" != "$2" ]; then
+              echo "::error::$3 回读不一致: $1 (remote=$remote local=$2)——半部署态，重跑本 workflow 恢复双端点一致"
+              exit 1
+            fi
+            echo "对账通过: $3"
+          }
+          check "https://dl.thomas0x00.uk/policy.json?v=${GITHUB_RUN_ID}" "$local_json" "R2/policy.json"
+          check "https://dl.thomas0x00.uk/policy.json.sig?v=${GITHUB_RUN_ID}" "$local_sig" "R2/policy.json.sig"
+          check "https://github.com/thomas0x01/crediscope-release/releases/download/updates/policy.json?v=${GITHUB_RUN_ID}" "$local_json" "release/policy.json"
+          check "https://github.com/thomas0x01/crediscope-release/releases/download/updates/policy.json.sig?v=${GITHUB_RUN_ID}" "$local_sig" "release/policy.json.sig"
+          check "https://dl.thomas0x00.uk/policy.json" "$local_json" "R2/policy.json(裸)"
+          check "https://github.com/thomas0x01/crediscope-release/releases/download/updates/policy.json" "$local_json" "release/policy.json(裸)"
+
+      # 部署件留档（含 .sig——回滚上一版政策时直接取档重传即可）
+      - name: Archive deployed artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: policy-${{ github.run_id }}
+          path: |
+            policy.json
+            policy.json.sig
+          retention-days: 90
