@@ -274,8 +274,10 @@ jobs:
         with:
           tag_name: ${{ inputs.release_tag }}
           draft: false
-          # 发布卫生（见私有仓 AGENTS.md）：带后缀的 tag（test/beta/rc）标 prerelease
-          prerelease: ${{ contains(inputs.release_tag, '-') }}
+          # 发布卫生（见私有仓 AGENTS.md）：带后缀的 tag（test/beta/rc）标 prerelease。
+          # 干净版本号也先 prerelease（黄金旅程 promote 翻正，2026-10-06 拍板 B）——
+          # 构建≠发布：黄金旅程门禁在 promote.yml，GitHub Latest 徽标不给未过门的版本
+          prerelease: true
           generate_release_notes: true
           files: |
             src/desktop/src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg
@@ -421,8 +423,10 @@ jobs:
         with:
           tag_name: ${{ inputs.release_tag }}
           draft: false
-          # 发布卫生（见私有仓 AGENTS.md）：带后缀的 tag（test/beta/rc）标 prerelease
-          prerelease: ${{ contains(inputs.release_tag, '-') }}
+          # 发布卫生（见私有仓 AGENTS.md）：带后缀的 tag（test/beta/rc）标 prerelease。
+          # 干净版本号也先 prerelease（黄金旅程 promote 翻正，2026-10-06 拍板 B）——
+          # 构建≠发布：黄金旅程门禁在 promote.yml，GitHub Latest 徽标不给未过门的版本
+          prerelease: true
           generate_release_notes: true
           files: |
             src/desktop/src-tauri/target/release/bundle/nsis/*.exe
@@ -520,12 +524,9 @@ jobs:
           git commit -m "chore(updater): latest.json → ${{ inputs.release_tag }}"
           git push
 
-      - name: Attach latest.json to the updates release
-        if: ${{ !contains(inputs.release_tag, '-') }}
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: updates
-          files: latest.json
+      # latest.json 的 updates 附带已迁 promote.yml（2026-10-06 黄金旅程
+      # 发版链拆分）：build 只生成+提交 latest.json，不上 R2 不附 release——
+      # 等黄金旅程绿后 promote 一口气做（翻正+latest.json+R2+updates+下载页主区）
 
       # ── 境内分发：S3 API 直传 R2（全链路不出 Cloudflare 网络） ──
       - name: Download release artifacts
@@ -537,7 +538,7 @@ jobs:
             -R thomas0x01/crediscope-release -D dist_artifacts \
             -p "*.dmg" -p "*.exe" -p "*.tar.gz" -p "*.sig"
 
-      - name: Upload to R2
+      - name: Upload to R2 (制品+内测区；latest.json/主区走 promote)
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
@@ -546,9 +547,15 @@ jobs:
         run: |
           export AWS_EC2_METADATA_DISABLED=true
           EP="https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
+          # 制品目录（所有构建——beta 分发依赖 R2）
           aws s3 sync dist_artifacts/ "s3://${R2_BUCKET}/releases/${{ inputs.release_tag }}/" \
             --endpoint-url "$EP" --no-progress
-          aws s3 cp dist_page/index.html "s3://${R2_BUCKET}/index.html" --endpoint-url "$EP"
+          # 静态资产（logo 等，低频变化直接跟）
           aws s3 cp dist_page/logo.png "s3://${R2_BUCKET}/logo.png" --endpoint-url "$EP"
           aws s3 cp dist_page/feishu-qr.png "s3://${R2_BUCKET}/feishu-qr.png" --endpoint-url "$EP"
-          aws s3 cp latest.json "s3://${R2_BUCKET}/latest.json" --endpoint-url "$EP"
+          # 下载页：beta 更新内测区即可（主区更新走 promote——黄金旅程门禁，
+          # 2026-10-06 拍板 B：干净版本号的 index.html 不在 build 侧上传）
+          if echo "${{ inputs.release_tag }}" | grep -q '-'; then
+            aws s3 cp dist_page/index.html "s3://${R2_BUCKET}/index.html" --endpoint-url "$EP"
+          fi
+          # latest.json：已迁 promote.yml（黄金旅程绿后才上——updater 通道门）

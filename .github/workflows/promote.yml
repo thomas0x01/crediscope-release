@@ -1,0 +1,143 @@
+name: Promote to Latest
+
+# 黄金旅程发版链（2026-10-06 拍板）：build.yml 的干净版本号先建 prerelease
+# （不占 Latest 位、不上 R2 主区/latest.json/updates）——黄金旅程绿后，
+# 手动触发本 workflow 一口气完成正式发布五件：
+#   1. 校验黄金旅程运行记录（主仓 docs/testing/golden-runs/，BUILD_PAT 读）
+#   2. GitHub Release 翻正（去 prerelease 标记 → Latest 徽标）
+#   3. latest.json 上传 R2（updater 通道开闸）
+#   4. 下载页主区更新（gen_release_page.py 用正式版信息）
+#   5. latest.json 附 updates release（GitHub 镜像端点）
+#
+# 前提：build.yml 已用同 tag 构建过（prerelease 态），.sig 已附在 release 上
+# （retention=1 的 artifact 不可靠，签名件从 release 下载）。
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: '要翻正的版本 tag（如 v0.2.7，须已由 build.yml 构建）'
+        required: true
+      golden_run_ref:
+        description: '黄金旅程运行记录文件名（主仓 docs/testing/golden-runs/ 下，如 v0.2.7-20261007.json）'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Checkout private source (for gen scripts)
+        uses: actions/checkout@v5
+        with:
+          repository: thomas0x01/crediscope-llm
+          ref: main
+          token: ${{ secrets.BUILD_PAT }}
+          path: src
+
+      # ── 门禁：黄金旅程运行记录校验（fail-closed）────────────────────
+      - name: "Gate: verify golden journey record"
+        env:
+          GH_TOKEN: ${{ secrets.BUILD_PAT }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+          RUN_REF: ${{ inputs.golden_run_ref }}
+        run: |
+          set -eu
+          # 拉取主仓 docs/testing/golden-runs/<ref> 文件
+          FILE=$(gh api "repos/thomas0x01/crediscope-llm/contents/docs/testing/golden-runs/${RUN_REF}" \
+            --jq '.content' | base64 -d) || {
+            echo "::error::黄金旅程记录不存在：docs/testing/golden-runs/${RUN_REF}"
+            exit 1
+          }
+          # 校验三线：结果=pass / 版本匹配 / WebView2 版本在场
+          RESULT=$(echo "$FILE" | python3 -c "import json,sys;d=json.load(sys.stdin);print(d.get('result',''))")
+          TAG=$(echo "$FILE" | python3 -c "import json,sys;d=json.load(sys.stdin);print(d.get('tag',''))")
+          if [ "$RESULT" != "pass" ]; then
+            echo "::error::黄金旅程结果为 ${RESULT}（须 pass）"
+            exit 1
+          fi
+          if [ "$TAG" != "$RELEASE_TAG" ]; then
+            echo "::error::记录版本 ${TAG} ≠ 翻正版本 ${RELEASE_TAG}"
+            exit 1
+          fi
+          echo "✓ 黄金旅程门禁通过：${RUN_REF} (${TAG})"
+
+      # ── 拉签名件（从 release 下载，不依赖 retention=1 的 artifact）──
+      - name: Download signing artifacts from release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p sig_artifacts
+          gh release download "${{ inputs.release_tag }}" \
+            -R thomas0x01/crediscope-release -D sig_artifacts \
+            -p "*.sig" || { echo "::error::.sig 不在 release 上（build 是否完成？）"; exit 1; }
+          ls -la sig_artifacts/
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # ── 翻正 GitHub Release（去 prerelease → Latest 徽标）──────────
+      - name: Flip GitHub Release to Latest
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release edit "${{ inputs.release_tag }}" \
+            -R thomas0x01/crediscope-release \
+            --latest --prerelease=false
+          echo "✓ GitHub Release 已翻正为 Latest"
+
+      # ── 生成 latest.json（updater 稳定通道开闸）────────────────────
+      - name: Generate latest.json
+        run: |
+          python3 src/desktop/scripts/gen_latest_json.py \
+            --repo thomas0x01/crediscope-release \
+            --tag "${{ inputs.release_tag }}" \
+            --assets-dir sig_artifacts \
+            --out latest.json \
+            --notes "Crediscope ${{ inputs.release_tag }}"
+
+      # ── 生成下载页（主区=正式版信息）────────────────────────────────
+      - name: Generate download page (main section)
+        run: |
+          python3 src/desktop/scripts/gen_release_page.py \
+            --release-tag "${{ inputs.release_tag }}" \
+            --state src/desktop/scripts/page_state.json \
+            --out dist_page
+
+      # ── R2 上传（latest.json + 下载页主区）─────────────────────────
+      - name: Upload latest.json + main page to R2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+        run: |
+          export AWS_EC2_METADATA_DISABLED=true
+          EP="https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
+          aws s3 cp latest.json "s3://${R2_BUCKET}/latest.json" --endpoint-url "$EP"
+          aws s3 cp dist_page/index.html "s3://${R2_BUCKET}/index.html" --endpoint-url "$EP"
+
+      # ── 附 latest.json 到 updates release（GitHub 镜像端点）─────────
+      - name: Attach latest.json to updates release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload updates latest.json --clobber \
+            -R thomas0x01/crediscope-release
+
+      - name: Summary
+        run: |
+          echo "## ✅ Promote ${{ inputs.release_tag }} 完成"
+          echo ""
+          echo "| 步骤 | 状态 |"
+          echo "|---|---|"
+          echo "| 黄金旅程门禁 | ✓ ${{ inputs.golden_run_ref }} |"
+          echo "| GitHub Latest | ✓ |"
+          echo "| latest.json (R2) | ✓ |"
+          echo "| 下载页主区 | ✓ |"
+          echo "| updates release | ✓ |"
