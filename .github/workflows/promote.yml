@@ -47,15 +47,29 @@ jobs:
           RUN_REF: ${{ inputs.golden_run_ref }}
         run: |
           set -eu
+          # 拒带后缀 tag：promote 只服务正式版翻正（一切构建恒 prerelease，
+          # 无合法 beta promote 流——build.yml 的 is_prerelease 规则）
+          case "$RELEASE_TAG" in
+            *-*) echo "::error::release_tag 含 '-'（${RELEASE_TAG}）——promote 只翻正正式版"; exit 1 ;;
+          esac
           # 拉取主仓 docs/testing/golden-runs/<ref> 文件
           FILE=$(gh api "repos/thomas0x01/crediscope-llm/contents/docs/testing/golden-runs/${RUN_REF}" \
             --jq '.content' | base64 -d) || {
             echo "::error::黄金旅程记录不存在：docs/testing/golden-runs/${RUN_REF}"
             exit 1
           }
-          # 校验三线：结果=pass / 版本匹配 / WebView2 版本在场
+          # 校验六查（2026-10-11 发版链 12/13 草案线 A3）：
+          #   ① result==pass           ② tag==release_tag
+          #   ③ journeys 非空           ④ runtime_webview2 非 unknown
+          #   ⑤ app_version==release_tag 去 v   ⑥ len(executed)==8
+          # 缺字段按空值参与比对即 fail（fail-closed：null/缺失 → '' ≠ tag）
           RESULT=$(echo "$FILE" | python3 -c "import json,sys;d=json.load(sys.stdin);print(d.get('result',''))")
           TAG=$(echo "$FILE" | python3 -c "import json,sys;d=json.load(sys.stdin);print(d.get('tag',''))")
+          WV2=$(echo "$FILE" | python3 -c "import json,sys;d=json.load(sys.stdin);print(d.get('runtime_webview2','') or '')")
+          APPV=$(echo "$FILE" | python3 -c "import json,sys;d=json.load(sys.stdin);print(d.get('app_version','') or '')")
+          EXECN=$(echo "$FILE" | python3 -c "import json,sys;d=json.load(sys.stdin);print(len(d.get('executed') or []))")
+          NJOUR=$(echo "$FILE" | python3 -c "import json,sys;d=json.load(sys.stdin);print(len(d.get('journeys') or {}))")
+          EXPECT_V="${RELEASE_TAG#v}"
           if [ "$RESULT" != "pass" ]; then
             echo "::error::黄金旅程结果为 ${RESULT}（须 pass）"
             exit 1
@@ -64,7 +78,23 @@ jobs:
             echo "::error::记录版本 ${TAG} ≠ 翻正版本 ${RELEASE_TAG}"
             exit 1
           fi
-          echo "✓ 黄金旅程门禁通过：${RUN_REF} (${TAG})"
+          if [ "$NJOUR" -le 0 ]; then
+            echo "::error::记录 journeys 为空（空集 vacuous pass 防线——旧格式/手改记录唯一托底）"
+            exit 1
+          fi
+          if [ -z "$WV2" ] || [ "$WV2" = "unknown" ]; then
+            echo "::error::runtime_webview2 缺失或 unknown（${WV2:-<缺失>}）——环境哨兵不绿"
+            exit 1
+          fi
+          if [ "$APPV" != "$EXPECT_V" ]; then
+            echo "::error::app_version '${APPV:-<缺失>}' ≠ 翻正版本 ${EXPECT_V}（被测实例版本自证失败）"
+            exit 1
+          fi
+          if [ "$EXECN" != "8" ]; then
+            echo "::error::executed=${EXECN} 条（正式版前须全量 8 条旅程）"
+            exit 1
+          fi
+          echo "✓ 黄金旅程门禁六查通过：${RUN_REF} (${TAG}, app=${APPV}, wv2=${WV2}, executed=${EXECN})"
 
       # ── 拉签名件（从 release 下载，不依赖 retention=1 的 artifact）──
       - name: Download signing artifacts from release
