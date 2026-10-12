@@ -58,10 +58,11 @@ jobs:
             echo "::error::黄金旅程记录不存在：docs/testing/golden-runs/${RUN_REF}"
             exit 1
           }
-          # 校验六查（2026-10-11 发版链 12/13 草案线 A3）：
+          # 校验七查（2026-10-11 发版链 12/13 草案线 A3 六查 + 2026-10-12 干跑补⑦）：
           #   ① result==pass           ② tag==release_tag
           #   ③ journeys 非空           ④ runtime_webview2 非 unknown
           #   ⑤ app_version==release_tag 去 v   ⑥ len(executed)==8
+          #   ⑦ journeys 全 pass 且 executed==journeys 键集（内部一致性）
           # 缺字段按空值参与比对即 fail（fail-closed：null/缺失 → '' ≠ tag）
           RESULT=$(echo "$FILE" | python3 -c "import json,sys;d=json.load(sys.stdin);print(d.get('result',''))")
           TAG=$(echo "$FILE" | python3 -c "import json,sys;d=json.load(sys.stdin);print(d.get('tag',''))")
@@ -94,7 +95,17 @@ jobs:
             echo "::error::executed=${EXECN} 条（正式版前须全量 8 条旅程）"
             exit 1
           fi
-          echo "✓ 黄金旅程门禁六查通过：${RUN_REF} (${TAG}, app=${APPV}, wv2=${WV2}, executed=${EXECN})"
+          # ⑦ 记录内部一致性（2026-10-12 门禁干跑抓洞补查）：journeys 逐条全
+          # pass 且 executed 名单与 journeys 键一致——防「单条 fail 但 result
+          # 留 pass」「8 条重复同名旅程」的手改/损坏记录借六查过门（六查只读
+          # 聚合值不读内容）。真实生成器 compute_result 由逐条推导，此查只拦
+          # 非生成器产物。
+          CONSISTENT=$(echo "$FILE" | python3 -c "import json,sys;d=json.load(sys.stdin);j=d.get('journeys') or {};e=d.get('executed') or [];ok=bool(j) and all(v == 'pass' for v in j.values()) and sorted(e) == sorted(j.keys());print('yes' if ok else 'no')")
+          if [ "$CONSISTENT" != "yes" ]; then
+            echo "::error::记录内部不一致：journeys 存在非 pass 条目或 executed 名单与 journeys 键不符（手改/损坏记录拒收）"
+            exit 1
+          fi
+          echo "✓ 黄金旅程门禁七查通过：${RUN_REF} (${TAG}, app=${APPV}, wv2=${WV2}, executed=${EXECN})"
 
       # ── 拉签名件（从 release 下载，不依赖 retention=1 的 artifact）──
       - name: Download signing artifacts from release
