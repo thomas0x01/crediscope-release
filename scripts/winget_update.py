@@ -114,7 +114,9 @@ def main() -> None:
     files = {
         f"{PKGID}.installer.yaml": INSTALLER_TMPL.format(**ctx),
         f"{PKGID}.locale.en-US.yaml": LOCALE_TMPL.format(**ctx),
-        f"{PKGID}.version.yaml": VERSION_TMPL.format(**ctx),
+        # version manifest 文件名规范：仅 PackageIdentifier + .yaml，
+        # 不带 .version 中缀（2026-10-13 首提被 bot 打回实证）
+        f"{PKGID}.yaml": VERSION_TMPL.format(**ctx),
     }
 
     branch = f"{PKGID}-{ver}"
