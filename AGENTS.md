@@ -34,6 +34,15 @@
   `gh workflow run build.yml -R thomas0x01/crediscope-release -f source_ref=main -f release_tag=vX.Y.Z[-suffix]`
 - **`deploy-demo.yml`**：demo 演示站部署（demo-site/ → R2 demo/），
   仅手动触发，与发版链路无关，不加自动触发
+- **`winget.yml`（winget 跟版）**：正式版发出后手动触发
+  `gh workflow run winget.yml -f release_tag=vX.Y.Z`——
+  `scripts/winget_update.py` 从本仓 Release 取 x64-setup.exe 的 sha256，
+  渲染三件 manifest（InstallerUrl 保持 dl.thomas0x00.uk 直链口径，境内
+  可达；**不用**第三方 winget-releaser，它会把 URL 改写成 GitHub 直链）
+  推 fork 分支并向 microsoft/winget-pkgs 开 PR。带后缀 tag 一律拒绝
+  （prerelease 不进 winget）。secret：`WINGET_TOKEN`（classic PAT，
+  public_repo）。ARP 元数据 2026-10-13 VM 注册表实测：HKCU
+  `Crediscope LLM` 键，Publisher `crediscope`，每用户安装。
 
 ## Secrets 清单（变更只在本仓重设）
 

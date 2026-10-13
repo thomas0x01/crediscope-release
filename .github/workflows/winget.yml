@@ -1,0 +1,20 @@
+name: winget
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: '正式版 tag（vX.Y.Z，无后缀；beta/test 拒绝）'
+        required: true
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Submit winget manifest PR
+        run: python3 scripts/winget_update.py "${{ inputs.release_tag }}"
+        env:
+          WINGET_TOKEN: ${{ secrets.WINGET_TOKEN }}
