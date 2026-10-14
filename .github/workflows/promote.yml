@@ -58,10 +58,11 @@ jobs:
             echo "::error::黄金旅程记录不存在：docs/testing/golden-runs/${RUN_REF}"
             exit 1
           }
-          # 校验七查（2026-10-11 发版链 12/13 草案线 A3 六查 + 2026-10-12 干跑补⑦）：
+          # 校验七查（2026-10-11 发版链 12/13 草案线 A3 六查 + 2026-10-12 干跑补⑦；
+          # 2026-10-14 ⑥查 8→9：J9 升级旅程入册）：
           #   ① result==pass           ② tag==release_tag
           #   ③ journeys 非空           ④ runtime_webview2 非 unknown
-          #   ⑤ app_version==release_tag 去 v   ⑥ len(executed)==8
+          #   ⑤ app_version==release_tag 去 v   ⑥ len(executed)==9
           #   ⑦ journeys 全 pass 且 executed==journeys 键集（内部一致性）
           # 缺字段按空值参与比对即 fail（fail-closed：null/缺失 → '' ≠ tag）
           RESULT=$(echo "$FILE" | python3 -c "import json,sys;d=json.load(sys.stdin);print(d.get('result',''))")
@@ -91,8 +92,8 @@ jobs:
             echo "::error::app_version '${APPV:-<缺失>}' ≠ 翻正版本 ${EXPECT_V}（被测实例版本自证失败）"
             exit 1
           fi
-          if [ "$EXECN" != "8" ]; then
-            echo "::error::executed=${EXECN} 条（正式版前须全量 8 条旅程）"
+          if [ "$EXECN" != "9" ]; then
+            echo "::error::executed=${EXECN} 条（正式版前须全量 9 条旅程——J9 升级旅程 2026-10-14 入册）"
             exit 1
           fi
           # ⑦ 记录内部一致性（2026-10-12 门禁干跑抓洞补查）：journeys 逐条全
