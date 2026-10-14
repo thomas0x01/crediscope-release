@@ -522,7 +522,15 @@ jobs:
           git add latest.json page_state.json
           git diff --cached --quiet && echo "清单无变化" && exit 0
           git commit -m "chore(updater): latest.json → ${{ inputs.release_tag }}"
-          git push
+          # push 前 rebase 兜底（2026-10-14 v0.2.10 两红实证：构建进行中人工
+          # 推 hub main 与 bot 提交撞 fetch-first 拒收；rerun --failed 沿用
+          # 触发时旧快照，此路恒撞——rebase 后重试三次再认输）
+          for i in 1 2 3; do
+            if git pull --rebase origin main && git push; then exit 0; fi
+            sleep 5
+          done
+          echo "::error::manifest push 三次重试仍被拒（hub main 竞态）"
+          exit 1
 
       # latest.json 的 updates 附带已迁 promote.yml（2026-10-06 黄金旅程
       # 发版链拆分）：build 只生成+提交 latest.json，不上 R2 不附 release——
