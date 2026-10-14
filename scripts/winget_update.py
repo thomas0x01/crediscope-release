@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""winget-pkgs 版本跟提脚本（hub winget.yml 手动触发，亦可本地跑）。
+r"""winget-pkgs 版本跟提脚本（hub winget.yml 手动触发，亦可本地跑）。
 
 用法: python3 scripts/winget_update.py vX.Y.Z
   - 拒绝带后缀 tag（test/beta/rc 只走 prerelease，不进 winget）
@@ -135,7 +135,7 @@ def main() -> None:
               "body": (f"Version bump for {PKGID} {ver}. Installer URL points "
                        "to the publisher-owned distribution site "
                        "(dl.thomas0x00.uk); SHA256 verified against the "
-                       "signed release artifact."})})
+                       "signed release artifact.")})
     print("PR:", pr["html_url"])
 
 
