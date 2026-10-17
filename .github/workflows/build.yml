@@ -515,6 +515,76 @@ jobs:
       - name: Generate download page
         run: python3 src/desktop/scripts/gen_release_page.py --release-tag "${{ inputs.release_tag }}" --notes "${{ inputs.notes }}" --pre-tag "${{ inputs.pre_tag }}" --state page_state.json --out dist_page
 
+      # latest.json 的 updates 附带已迁 promote.yml（2026-10-06 黄金旅程
+      # 发版链拆分）：build 只生成+提交 latest.json，不上 R2 不附 release——
+      # 等黄金旅程绿后 promote 一口气做（翻正+latest.json+R2+updates+下载页主区）。
+      # 步骤序（2026-10-17 v0.2.10 事故补 + 红队 P1-1 精修）：制品先经全集闸
+      # 上 R2，随后立即提交仓库 manifest，beta 下载页最后上传——红队实证 Commit
+      # 若放在全部 R2 上传之后，push 失败会留下「beta 页已上线、state 未回写」
+      # 的反向错位窗口。正式 updater/latest.json 上 R2 根目录与 updates release
+      # 仍归 promote.yml 开闸，build 侧不提前开放。
+
+      # ── 境内分发：S3 API 直传 R2（全链路不出 Cloudflare 网络） ──
+      - name: Download release artifacts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p dist_artifacts
+          gh release download "${{ inputs.release_tag }}" \
+            -R thomas0x01/crediscope-release -D dist_artifacts \
+            -p "*.dmg" -p "*.exe" -p "*.tar.gz" -p "*.sig"
+
+      # 制品全集闸（2026-10-17 v0.2.10 事故补门）：R2 上传前断言 Release
+      # 制品齐全——事故系 manifest 已提交而 R2 制品不全，仓库状态与实发
+      # 制品错位。计数用严格后缀，普通 .sig 不等于 .app.tar.gz.sig/.exe.sig，
+      # 不许混算。
+      - name: Gate release artifacts completeness
+        shell: bash
+        run: |
+          cd dist_artifacts
+          dmg=$(find . -maxdepth 1 -type f -name '*.dmg' | wc -l)
+          apptgz=$(find . -maxdepth 1 -type f -name '*.app.tar.gz' | wc -l)
+          apptgzsig=$(find . -maxdepth 1 -type f -name '*.app.tar.gz.sig' | wc -l)
+          exe=$(find . -maxdepth 1 -type f -name '*.exe' | wc -l)
+          exesig=$(find . -maxdepth 1 -type f -name '*.exe.sig' | wc -l)
+          ok=1
+          [ "$dmg" -ge 1 ] || { echo "::error::缺 .dmg 制品（当前 $dmg 个）"; ok=0; }
+          [ "$apptgz" -ge 1 ] || { echo "::error::缺 .app.tar.gz 制品（当前 $apptgz 个）"; ok=0; }
+          [ "$apptgzsig" -ge 1 ] || { echo "::error::缺 .app.tar.gz.sig 签名（当前 $apptgzsig 个）"; ok=0; }
+          [ "$exe" -ge 1 ] || { echo "::error::缺 .exe 制品（当前 $exe 个）"; ok=0; }
+          [ "$exesig" -ge 1 ] || { echo "::error::缺 .exe.sig 签名（当前 $exesig 个）"; ok=0; }
+          if [ "$ok" -ne 1 ]; then
+            echo "::error::Release 制品全集闸未过，dist_artifacts 实际内容："
+            ls -1
+            exit 1
+          fi
+
+      # 制品与静态资产上传（所有构建——beta 分发依赖 R2）。此步只传与
+      # 本次仓库状态无关的内容：制品目录 + logo/QR；下载页 index.html
+      # 拆到 Commit 之后单独上传（红队 P1-1：manifest 未落库时 beta 页
+      # 不先行上线）。
+      - name: Upload release artifacts to R2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+        run: |
+          export AWS_EC2_METADATA_DISABLED=true
+          EP="https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
+          # 制品目录（所有构建——beta 分发依赖 R2）
+          aws s3 sync dist_artifacts/ "s3://${R2_BUCKET}/releases/${{ inputs.release_tag }}/" \
+            --endpoint-url "$EP" --no-progress
+          # 静态资产（logo 等，低频变化、与本次 manifest 状态无关，跟制品同批）
+          aws s3 cp dist_page/logo.png "s3://${R2_BUCKET}/logo.png" --endpoint-url "$EP"
+          aws s3 cp dist_page/feishu-qr.png "s3://${R2_BUCKET}/feishu-qr.png" --endpoint-url "$EP"
+
+      # 仓库 manifest 提交紧随制品上传（2026-10-17 v0.2.10 事故补序 +
+      # 红队 P1-1 精修）：制品经全集闸上 R2 成功后立即回写本仓——制品缺漏
+      # 先被闸拦下，不会留「仓库状态已翻、实发制品不全」错位；同时 Commit
+      # 先于 beta 页上传，push 失败不会留「beta 页已上线、state 未回写」的
+      # 反向错位。latest.json 本体只在干净 tag 生成（见上 Generate 步骤的
+      # if 条件），干净 tag 的 R2 根目录 latest.json 仍归 promote.yml 开闸。
       - name: Commit latest.json + page_state.json
         run: |
           git config user.name "crediscope-bot"
@@ -532,21 +602,11 @@ jobs:
           echo "::error::manifest push 三次重试仍被拒（hub main 竞态）"
           exit 1
 
-      # latest.json 的 updates 附带已迁 promote.yml（2026-10-06 黄金旅程
-      # 发版链拆分）：build 只生成+提交 latest.json，不上 R2 不附 release——
-      # 等黄金旅程绿后 promote 一口气做（翻正+latest.json+R2+updates+下载页主区）
-
-      # ── 境内分发：S3 API 直传 R2（全链路不出 Cloudflare 网络） ──
-      - name: Download release artifacts
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          mkdir -p dist_artifacts
-          gh release download "${{ inputs.release_tag }}" \
-            -R thomas0x01/crediscope-release -D dist_artifacts \
-            -p "*.dmg" -p "*.exe" -p "*.tar.gz" -p "*.sig"
-
-      - name: Upload to R2 (制品+内测区；latest.json/主区走 promote)
+      # beta 下载页上传殿后（红队 P1-1）：manifest 已提交进本仓后才让
+      # 内测页指向本次构建——Commit 失败时 beta 页保持旧状态，不留反向
+      # 错位窗口。主区 index.html 与 latest.json 仍归 promote.yml（黄金
+      # 旅程门禁，2026-10-06 拍板 B：干净版本号不在 build 侧上传）。
+      - name: Upload beta download page to R2
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
@@ -555,15 +615,11 @@ jobs:
         run: |
           export AWS_EC2_METADATA_DISABLED=true
           EP="https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
-          # 制品目录（所有构建——beta 分发依赖 R2）
-          aws s3 sync dist_artifacts/ "s3://${R2_BUCKET}/releases/${{ inputs.release_tag }}/" \
-            --endpoint-url "$EP" --no-progress
-          # 静态资产（logo 等，低频变化直接跟）
-          aws s3 cp dist_page/logo.png "s3://${R2_BUCKET}/logo.png" --endpoint-url "$EP"
-          aws s3 cp dist_page/feishu-qr.png "s3://${R2_BUCKET}/feishu-qr.png" --endpoint-url "$EP"
-          # 下载页：beta 更新内测区即可（主区更新走 promote——黄金旅程门禁，
-          # 2026-10-06 拍板 B：干净版本号的 index.html 不在 build 侧上传）
           if echo "${{ inputs.release_tag }}" | grep -q '-'; then
+            # beta 更新内测区即可（主区更新走 promote）
             aws s3 cp dist_page/index.html "s3://${R2_BUCKET}/index.html" --endpoint-url "$EP"
+          else
+            # 干净 tag：主区 index.html 与 latest.json 由 promote.yml 上传
+            # （黄金旅程绿后才开 updater 通道门）
+            echo "干净 tag：主区下载页与 latest.json 归 promote.yml 上传，build 侧不上传"
           fi
-          # latest.json：已迁 promote.yml（黄金旅程绿后才上——updater 通道门）
