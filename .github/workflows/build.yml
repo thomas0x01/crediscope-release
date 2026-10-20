@@ -117,7 +117,7 @@ jobs:
           python-version: '3.13'
 
       - name: Install dependencies
-        run: pip install -r src/crediscope-llm/requirements.txt
+        run: pip install --require-hashes -r src/crediscope-llm/requirements-runtime.lock
 
       - name: Install pdftotext (poppler)
         # mock LLM 端到端（tests/e2e/test_mock_full_analysis.py）真实跑提取管线
@@ -229,7 +229,7 @@ jobs:
           targets: aarch64-apple-darwin
 
       - name: Install backend dependencies
-        run: pip install -r src/crediscope-llm/requirements.txt pyinstaller 'cython==3.3.*'
+        run: pip install --require-hashes -r src/crediscope-llm/requirements-build.lock
 
       - name: Stamp sidecar version
         shell: bash
@@ -379,7 +379,7 @@ jobs:
           targets: x86_64-pc-windows-msvc
 
       - name: Install backend dependencies
-        run: pip install -r src/crediscope-llm/requirements.txt pyinstaller 'cython==3.3.*'
+        run: pip install --require-hashes -r src/crediscope-llm/requirements-build.lock
 
       - name: Stamp sidecar version
         shell: bash
