@@ -5,11 +5,15 @@ on:
       release_tag:
         description: '正式版 tag（vX.Y.Z，无后缀；beta/test 拒绝）'
         required: true
+      auto_answer_minutes:
+        description: 'PR 开出后自动应答看守分钟数（0=关）'
+        required: false
+        default: '75'
 
 jobs:
   submit:
     runs-on: ubuntu-latest
-    # 看守上限 75 分钟 + 开 PR/应答余量（脚本内 WINGET_AUTO_ANSWER_MINUTES 调）
+    # 看守上限默认 75 分钟 + 开 PR/应答余量（调大 input 时同步调此处）
     timeout-minutes: 150
     steps:
       - uses: actions/checkout@v4
@@ -20,3 +24,4 @@ jobs:
         run: python3 scripts/winget_update.py "${{ inputs.release_tag }}"
         env:
           WINGET_TOKEN: ${{ secrets.WINGET_TOKEN }}
+          WINGET_AUTO_ANSWER_MINUTES: ${{ inputs.auto_answer_minutes }}

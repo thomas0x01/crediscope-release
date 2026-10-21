@@ -98,7 +98,9 @@ def api(method: str, path: str, body: dict | None = None) -> dict:
         sys.exit(f"API {method} /{path} -> {e.code}: {e.read().decode()[:400]}")
 
 
-# ── PR 开出后的自动应答（2026-10-21，backlog「winget 跟提后自动应答」立项）──
+# ── PR 开出后的自动应答（2026-10-21，backlog「winget 跟提后自动应答」立项；
+# 同日红蓝一轮吸收：裸 url 正则过宽/标签读取失败误判「已摘」/最新一条被
+# 样板评论压沉/403 UA 敏感/评论分页/CLA 启发式碰巧/先例句误导，全修）──
 # 每个新 PR 固定收两道闸：needsCLA（回 agree 约 1 分钟摘标签）+ 域名问询
 # （约 45 分钟到，挂 Needs-Author-Feedback；措辞「URL 不像有效」易被误读
 # 成链接挂了）。轮询自动应答；人工审不阻塞——到点正常退出。诚实纪律：
@@ -107,6 +109,13 @@ def api(method: str, path: str, body: dict | None = None) -> dict:
 CLA_AGREE = "@microsoft-github-policy-service agree"
 EVIDENCE_MARK = "dl.thomas0x00.uk is owned and operated by the publisher"
 POLL_SEC = 180
+# 域名问询只认强信号：installer url 提法/domain 关键词/主机名本身。
+# 裸「url」（PublisherUrl/徽章 endpoint?url= 都含）会误判无关问询（红队
+# ③d 实证），website 同理太宽，均不入词表。
+_DOMAIN_Q_RE = re.compile(r"installer\s*urls?|domain|dl\.thomas0x00\.uk", re.I)
+# 问询评论后可能紧跟 validation 样板评论把 latest 压沉（#455291 实证相隔
+# 28 秒）——扫描最近 N 条他者评论，不只看最新一条。
+_DOMAIN_Q_LOOKBACK = 5
 
 
 def api_soft(method: str, path: str):
@@ -129,62 +138,70 @@ def _norm_label(name: str) -> str:
     return re.sub(r"[^a-z0-9]", "", str(name).lower())
 
 
-def _labels(pr_number: int) -> set[str]:
+def _labels(pr_number: int) -> set[str] | None:
+    """None=读取失败（本轮跳过一切标签判定，防把「读失败」当「已摘」
+    提前收尾）；空集=确实无标签。"""
     issue = api_soft("GET", f"repos/{UPSTREAM}/issues/{pr_number}")
     if not isinstance(issue, dict):
-        return set()
+        return None
     return {_norm_label(l.get("name", "")) for l in issue.get("labels", [])}
 
 
 def _comments(pr_number: int) -> list[dict]:
-    out = api_soft("GET",
-                   f"repos/{UPSTREAM}/issues/{pr_number}/comments?per_page=100")
-    return out if isinstance(out, list) else []
+    """分页拉全：单页 100 上限在热 PR 上会漏看自己的历史评论→幂等失效
+    重复发。5 页=500 条封顶（远超实际）；中途读取失败返回已捞部分。"""
+    out: list[dict] = []
+    for page in range(1, 6):
+        chunk = api_soft("GET", f"repos/{UPSTREAM}/issues/{pr_number}"
+                                f"/comments?per_page=100&page={page}")
+        if not isinstance(chunk, list) or not chunk:
+            break
+        out.extend(chunk)
+        if len(chunk) < 100:
+            break
+    return out
 
 
 def _installer_reachable(url: str) -> int:
     """GET Range bytes=0-0 实测。用 GET 不用 HEAD：2026-10-14 负缓存事故
-    实证 HEAD/GET 缓存形态可分叉，GET 才是 winget/更新器的真实路径。"""
-    req = urllib.request.Request(
-        url, headers={"Range": "bytes=0-0",
-                      "User-Agent": "crediscope-winget-update"})
-    try:
-        with urllib.request.urlopen(req, timeout=30) as r:
-            return r.status
-    except urllib.error.HTTPError as e:
-        return e.code
-    except Exception:
-        return 0
+    实证 HEAD/GET 缓存形态可分叉，GET 才是 winget/更新器的真实路径。
+    CF bot 防护 UA 敏感（2026-10-21 实测：python-urllib 默认 UA 吃 403，
+    自定义 UA 206）——403 时换浏览器 UA 重试一次再定谳，防 CF 策略收紧
+    造成假阴性带血退出。"""
+    for ua in ("crediscope-winget-update",
+               "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"):
+        req = urllib.request.Request(url, headers={"Range": "bytes=0-0",
+                                                   "User-Agent": ua})
+        try:
+            with urllib.request.urlopen(req, timeout=30) as r:
+                return r.status
+        except urllib.error.HTTPError as e:
+            if e.code != 403:
+                return e.code
+        except Exception:
+            return 0
+    return 403
 
 
-def _precedent_prs(exclude: int) -> list[int]:
-    """同作者同包的历史 PR（动态查，不硬编码编号）。"""
-    q = urllib.parse.urlencode({
-        "q": f"repo:{UPSTREAM} is:pr author:{FORK.split('/')[0]} {PKGID}",
-        "sort": "created", "order": "desc", "per_page": "5"})
-    out = api_soft("GET", f"search/issues?{q}")
-    if not isinstance(out, dict):
-        return []
-    return [i["number"] for i in out.get("items", [])
-            if isinstance(i.get("number"), int) and i["number"] != exclude]
-
-
-def _evidence_body(ctx: dict, status: int, precedents: list[int]) -> str:
-    prec = ("Previous submissions for earlier versions used the same URL "
-            "scheme: " + ", ".join(f"#{n}" for n in precedents)) if precedents \
-        else "This submission follows the same URL scheme as our previous submissions."
+def _evidence_body(ctx: dict, status: int) -> str:
+    # 不引「先例 PR」：该包历史提交均 closed-unmerged（0 合并），引用失败
+    # 提交作先例是误导（红队 S1-2 实证）。域名归属+官网交叉+sha256+实测
+    # 可达四件已完整回答问询。
     return (
         "Thanks for checking the installer URL. Confirming ownership and integrity:\n\n"
         f"- {EVIDENCE_MARK} (thomas0x01 / crediscope). The official product page "
         "https://crediscope.thomas0x00.uk links to installers hosted on dl.thomas0x00.uk.\n"
         f"- I have just re-verified that the InstallerUrl is reachable (HTTP {status}).\n"
         f"- InstallerSha256 ({ctx['sha']}) matches the SHA256 digest of the signed "
-        f"release asset published at https://github.com/{HUB}/releases/tag/{ctx['tag']}.\n"
-        f"- {prec}.")
+        f"release asset published at https://github.com/{HUB}/releases/tag/{ctx['tag']}.")
 
 
 def auto_answer(pr: dict, ctx: dict) -> None:
-    minutes = int(os.environ.get("WINGET_AUTO_ANSWER_MINUTES", "75"))
+    try:
+        minutes = int(os.environ.get("WINGET_AUTO_ANSWER_MINUTES", "75"))
+    except ValueError:  # 非数字输入不得在 PR 已开出后炸（红队 S3-11）
+        print("WINGET_AUTO_ANSWER_MINUTES 非数字，按默认 75 分钟")
+        minutes = 75
     if minutes <= 0:
         return
     pr_number = pr["number"]
@@ -201,25 +218,27 @@ def auto_answer(pr: dict, ctx: dict) -> None:
         evidenced = evidenced or any(
             EVIDENCE_MARK in (c.get("body") or "") for c in ours)
 
-        # 闸一 CLA：标签或政策机器人问句在场且未答 → 回 agree
-        cla_pending = bool(labels & {"needscla", "clarequired"}) or any(
+        # 闸一 CLA：标签在场，或政策机器人问句（其原文即含 agree 指令全文）
+        # 在场且未答 → 回 agree
+        cla_pending = (bool(labels and labels & {"needscla", "clarequired"})
+                       or any(
             "microsoft-github-policy-service"
             in str((c.get("user") or {}).get("login") or "")
-            and "agree" in (c.get("body") or "").lower() for c in comments)
+            and CLA_AGREE in (c.get("body") or "") for c in comments))
         if cla_pending and not agreed:
             api("POST", f"repos/{UPSTREAM}/issues/{pr_number}/comments",
                 {"body": CLA_AGREE})
             agreed = True
             print("已应答 CLA（agree）")
 
-        # 闸二 域名问询：Needs-Author-Feedback + 他者最新评论涉 URL/域名 →
-        # 先 GET 实测 InstallerUrl 再发佐证
-        if "needsauthorfeedback" in labels and not evidenced:
+        # 闸二 域名问询：Needs-Author-Feedback + 最近 N 条他者评论命中强信号
+        # → 先 GET 实测 InstallerUrl 再发佐证
+        if labels and "needsauthorfeedback" in labels and not evidenced:
             others = [c for c in comments
                       if (c.get("user") or {}).get("login") not in (None, me)]
-            latest = str((others[-1].get("body") or "")) if others else ""
-            if re.search(r"installer\s*url|domain|website|dl\.thomas0x00\.uk"
-                         r"|url", latest, re.I):
+            recent = others[-_DOMAIN_Q_LOOKBACK:]
+            if any(_DOMAIN_Q_RE.search(str(c.get("body") or ""))
+                   for c in recent):
                 url = ("https://dl.thomas0x00.uk/releases/"
                        f"{ctx['tag']}/{ctx['asset']}")
                 status = _installer_reachable(url)
@@ -227,12 +246,12 @@ def auto_answer(pr: dict, ctx: dict) -> None:
                     sys.exit(f"域名问询在场但 InstallerUrl 实测不可达（HTTP "
                              f"{status}）——不发佐证，先修分发链再应答")
                 api("POST", f"repos/{UPSTREAM}/issues/{pr_number}/comments",
-                    {"body": _evidence_body(ctx, status,
-                                            _precedent_prs(pr_number))})
+                    {"body": _evidence_body(ctx, status)})
                 evidenced = True
                 print(f"已应答域名问询（InstallerUrl 实测 HTTP {status}）")
 
-        if not labels & {"needscla", "clarequired", "needsauthorfeedback"}:
+        if labels is not None and not labels & {"needscla", "clarequired",
+                                                "needsauthorfeedback"}:
             state = (api_soft("GET", f"repos/{UPSTREAM}/pulls/{pr_number}")
                      or {}).get("state")
             if state and state != "open":
