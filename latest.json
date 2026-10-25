@@ -1,15 +1,15 @@
 {
-  "version": "0.2.14",
-  "notes": "· 回收站：删除项目可恢复（侧栏入口+确认卡，误删有救）\n· 修复切换项目后未命名项目从侧栏消失，新增手动命名入口\n· 工作台助手安全加固（运行期工具白名单+回环闸）\n· 提取缺口遥测分类归真\n· 发版链可靠性修复（J8 真端点断言/缺签名硬闸）",
-  "pub_date": "2026-10-22T01:14:08.672163+00:00",
+  "version": "0.2.15",
+  "notes": "· 首次安装与工作台体验优化\n· Windows 命令、超时回收与 DOCX 取消修复\n· 可信续跑、取消、402 与用量记录加固\n· 模板、Wiki 与报告稳定性修复",
+  "pub_date": "2026-10-25T10:48:29.491476+00:00",
   "platforms": {
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjYzazZTTFNleHByekRSWnVhUFVsNzJpeEtQekpTY3YyTEE4UFdEd1pUWUVCKzVmYStVS2taZjUzQ0pqWjBicXRSVXN0ZzE4VGVyWWZncDVNRUllTndvPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkyNjMxNTY5CWZpbGU6Q3JlZGlzY29wZSBMTE0uYXBwLnRhci5negpqZC9DR0pITCtsU1B4ZjBFMzlWbUpLK2VlZTNoWGFCUXpuaCtyVmRMdHZsUTB6b1AzUzE2cjN3TzEvMjZURTJTdHU1THlMQ2VRNmh0cE9laUdZS0REdz09Cg==",
-      "url": "https://dl.thomas0x00.uk/releases/v0.2.14/Crediscope.LLM.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybnp3U3NabzgrSVRwUG91RVZXUHNpTG9vaHRIWkVOZ1lIemNkMUhOUjVGbmZVMklJNUZRUW1jMUxHb1lTL3orOTRzbjFmbVhSTmhZRTdiRlplWU5qY0FJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkyOTI1MDk0CWZpbGU6Q3JlZGlzY29wZSBMTE0uYXBwLnRhci5negpuQWN3MXpKaUxjOVJFbDYxQ3RjeTQ3RzZ3SkE0R285ZFlPVCtFQktvVlpLM0Z3TlIxd0JDZWRNd3BMckI3MSt3MzRMYldwU1Eyd0tUWlpXd0Vxd0JCZz09Cg==",
+      "url": "https://dl.thomas0x00.uk/releases/v0.2.15/Crediscope.LLM.app.tar.gz"
     },
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjQyUVFkZnNwS2pkU0RCMVpJMmZSN2xKZVppVitTZ0Z5OWNGL052QzJxSSt6WU9rTjE0VFo3YVdDWDBCSm9SNWxrck14TzVWMXk3bG5oZ2FpUUVWQ3c0PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkyNjMxNjI1CWZpbGU6Q3JlZGlzY29wZSBMTE1fMC4yLjE0X3g2NC1zZXR1cC5leGUKUzVBMjNjdjZuOWdqVzFBM040TVhHM2RIVzJ3UWlacFZRSGNPZURxUlZJMDE2cjBFUHBqV3hvQms3UkY1c2swOXBqRU5VbnNDTnFZK3NoQ09yb1lLQmc9PQo=",
-      "url": "https://dl.thomas0x00.uk/releases/v0.2.14/Crediscope.LLM_0.2.14_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybnlSaDZvUzNEQXM0bll3UXZaQ211eEh6d3ZNeTlmTURnM3IwYUFHVHJTQlF6ZDFNb2FSSENDSlRjK25IT0pNaVJQaE1IaVhOejBMZTRLMXJGd1VtOEFJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkyOTI1Mjg5CWZpbGU6Q3JlZGlzY29wZSBMTE1fMC4yLjE1X3g2NC1zZXR1cC5leGUKaytDdzhJam1PbnVjY0Q5dTh0eTFJaG82TkxRc1hTdDVZWkprblZhSW5ic05DYUNJc3hlOHFYaitaeDBsZCtIODhCb0IwaHA3THljVG55Y2lNZldyRGc9PQo=",
+      "url": "https://dl.thomas0x00.uk/releases/v0.2.15/Crediscope.LLM_0.2.15_x64-setup.exe"
     }
   }
 }
