@@ -1,15 +1,15 @@
 {
-  "version": "0.2.16",
-  "notes": "· 尽调失败止损与上下文预算\n· 修正货币资金子口径误拦\n· 财务来源与模型设置改进\n· 审查核验底稿及小微实验模板",
-  "pub_date": "2026-11-05T07:28:07.175562+00:00",
+  "version": "0.2.17",
+  "notes": "· 助手待办集中展示\n· 完成通知持久记录\n· 聊天消息持久排队并支持暂停撤销\n· 修复财务网格模板误绑",
+  "pub_date": "2026-11-07T03:51:50.371070+00:00",
   "platforms": {
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjh0QmdRM1R0SDNKbTBTL2UybWkwd1BMeWJ3d2VJMmZnYjFUOFhFdUFIcjdCR1ZEZlF2dzh0VHY5WDVsZ0pvNGM4MDRVRkc3Q0YxejZDK1ZBUk13K2dRPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkzODYyOTEwCWZpbGU6Q3JlZGlzY29wZSBMTE0uYXBwLnRhci5negpEaFI3SlhERmJNTFJ0SHlDbUhpSUNhYVBnTCtuZUxrcHIwK2YyeXp5VFZsU1JQME5kZWl1Z3FDM2p1NjVRcFhqT2FjcU5QYitma3d4M25LVE9YeXFDUT09Cg==",
-      "url": "https://dl.thomas0x00.uk/releases/v0.2.16/Crediscope.LLM.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjZEVXFrY05QOHlXZDFYMExMM1lsd3htbUFvMVM4SnVPRjJoWVhnbWpYaFA1RytzcjIweit4bXg4RWI5UnFvNlNiVHNJZHlsait1aW1BOU9Ma1pqUUFvPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzk0MDIzMzEzCWZpbGU6Q3JlZGlzY29wZSBMTE0uYXBwLnRhci5negppVm5nOFVyRmxqNUJuZ3MrZ2oxVXNobWlFOFVQNHJnUGRsNjJrTERrOGE2UXJ6UzB5TTZrM0hGdkRtSjFTK0hqKzg5NWRSUTVMZjBqREdUYjhyenlBdz09Cg==",
+      "url": "https://dl.thomas0x00.uk/releases/v0.2.17/Crediscope.LLM.app.tar.gz"
     },
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjNaWXNSUHd5bE9sRnFrMm8vVkJmZEc4bWpJc3NXM01ReEZyNHRGaXN5L3RQMmFZcm8veHNId3hyR1AwNmNjSGR6TWJGSUpyRS9qbVQwaGtNdklSM0F3PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkzODYzMjQ3CWZpbGU6Q3JlZGlzY29wZSBMTE1fMC4yLjE2X3g2NC1zZXR1cC5leGUKUm04cjkwKzZIZzlIMzUzd1ZZT2p6cHEra295b3M5SUVoRS9nbzg4dzI3Q2I2TktzOHFFWlFjTjZLUWJvbEdDOHJzZ2cva0tjNW9Bcmtrb08rb25sQ2c9PQo=",
-      "url": "https://dl.thomas0x00.uk/releases/v0.2.16/Crediscope.LLM_0.2.16_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjlrUnRoVTVtTFhyQ2ZOaERNYndjakRYYmh1eUJQaG05dzJDYXY5K1k3STZmUUhjOUpNelhHWUR4N2tzVWNKdFpkcmIzUGdvYnh6a2orVEh2TitvbUFVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzk0MDIzNDkxCWZpbGU6Q3JlZGlzY29wZSBMTE1fMC4yLjE3X3g2NC1zZXR1cC5leGUKYkpmQmdXZWlWN09BejgzeU9lK25WQ0JIZko4MTM0bll5S2RWZDh4Ry9WRm5ma1cxdlM2b1pJSklmK1RqNExyUm5IZU9sOTUycjFUZ1p2bmtLZ0NUQ0E9PQo=",
+      "url": "https://dl.thomas0x00.uk/releases/v0.2.17/Crediscope.LLM_0.2.17_x64-setup.exe"
     }
   }
 }
