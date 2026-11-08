@@ -583,23 +583,70 @@ jobs:
       # 红队 P1-1 精修）：制品经全集闸上 R2 成功后立即回写本仓——制品缺漏
       # 先被闸拦下，不会留「仓库状态已翻、实发制品不全」错位；同时 Commit
       # 先于 beta 页上传，push 失败不会留「beta 页已上线、state 未回写」的
-      # 反向错位。latest.json 本体只在干净 tag 生成（见上 Generate 步骤的
-      # if 条件），干净 tag 的 R2 根目录 latest.json 仍归 promote.yml 开闸。
+      # 反向错位。latest.json 本体只在干净 tag 生成（Generate 与 Commit
+      # 两处同条件），干净 tag 的 R2 根目录 latest.json 仍归 promote.yml 开闸。
       - name: Commit latest.json + page_state.json
+        env:
+          TAG: ${{ inputs.release_tag }}
+          NOTES: ${{ inputs.notes }}
+          PRE_TAG: ${{ inputs.pre_tag }}
         run: |
+          set -euo pipefail
           git config user.name "crediscope-bot"
           git config user.email "bot@crediscope.local"
-          git add latest.json page_state.json
-          git diff --cached --quiet && echo "清单无变化" && exit 0
-          git commit -m "chore(updater): latest.json → ${{ inputs.release_tag }}"
-          # push 前 rebase 兜底（2026-10-14 v0.2.10 两红实证：构建进行中人工
-          # 推 hub main 与 bot 提交撞 fetch-first 拒收；rerun --failed 沿用
-          # 触发时旧快照，此路恒撞——rebase 后重试三次再认输）
+          # 每次尝试都以 hub 远端最新 manifest 为基线重新生成：构建期间
+          # main 会随其他发版推进，rerun 又复用触发时的旧快照，直接
+          # rebase 必在 latest.json 上撞签名冲突（2026-11-08 v0.2.17
+          # rerun 两红实证）。冲突不能简单 theirs 丢掉对方可能更高的正式
+          # 版本，故先 fetch+reset 到 origin/main，再用本次制品重算。
+          # reset 用 --mixed：只重置 index，不删除 src/、dist_page/、
+          # updater_artifacts/ 等 runner 上的 untracked 目录。
           for i in 1 2 3; do
-            if git pull --rebase origin main && git push; then exit 0; fi
+            if ! git fetch origin main; then sleep 5; continue; fi
+            git reset --mixed origin/main
+            git checkout origin/main -- latest.json page_state.json
+
+            # 正式版只升不降（beta 带 "-"，不动 stable）：同 tag 重发允许
+            # （本次签名覆盖旧签名），低于 origin/main 现有稳定版则拒绝，
+            # 防老版本构建把已发布的更高正式版顶回去。
+            if [[ "$TAG" != *-* ]]; then
+              BASE_VERSION=$(python3 -c 'import json;print(json.load(open("latest.json", encoding="utf-8")).get("version", ""))')
+              python3 - "$BASE_VERSION" "${TAG#v}" <<'PY'
+          import sys
+
+          base = sys.argv[1].lstrip("v")
+          new = sys.argv[2].lstrip("v")
+          if base:
+              def core(v):
+                  return tuple(int(p) for p in v.split("-", 1)[0].split("."))
+              if core(new) < core(base):
+                  print(f"::error::拒绝降级：本次 {new} 低于现有稳定版 {base}（latest.json 不覆盖）")
+                  raise SystemExit(1)
+          PY
+              python3 src/desktop/scripts/gen_latest_json.py \
+                --repo thomas0x01/crediscope-release \
+                --tag "$TAG" \
+                --assets-dir updater_artifacts \
+                --out latest.json \
+                --notes "$NOTES"
+            fi
+            python3 src/desktop/scripts/gen_release_page.py \
+              --release-tag "$TAG" \
+              --notes "$NOTES" \
+              --pre-tag "$PRE_TAG" \
+              --state page_state.json \
+              --out dist_page
+
+            git add latest.json page_state.json
+            if git diff --cached --quiet; then
+              echo "清单无变化"
+              exit 0
+            fi
+            git commit -m "chore(updater): latest.json → $TAG"
+            if git push; then exit 0; fi
             sleep 5
           done
-          echo "::error::manifest push 三次重试仍被拒（hub main 竞态）"
+          echo "::error::manifest 同步/推送三次重试仍失败（hub main 竞态或网络）"
           exit 1
 
       # beta 下载页上传殿后（红队 P1-1）：manifest 已提交进本仓后才让
