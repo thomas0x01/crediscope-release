@@ -22,6 +22,12 @@ on:
         required: false
         default: ''
 
+concurrency:
+  # 同一 tag 的两轮构建不得交错上传：后结束的旧提交会覆盖新提交资产
+  # （2026-11-09 v0.2.17 包内聊天代码回落实证）。
+  group: build-${{ inputs.release_tag }}
+  cancel-in-progress: false
+
 jobs:
   # 测试门禁：全量 pytest（含冻结模拟 L0）不过则不构建，
   # 防"忘了跑测试"——回归测试不靠记忆生效
@@ -242,6 +248,7 @@ jobs:
       - name: Prepare sidecar
         env:
           RESOURCE_KEY_PASSPHRASE: ${{ secrets.RESOURCE_KEY_PASSPHRASE }}
+          CREDISCOPE_SOURCE_SHA: ${{ inputs.source_ref }}
         run: bash src/desktop/scripts/prepare-sidecar.sh
 
       - name: Sidecar smoke test (with mini analysis)
@@ -391,6 +398,7 @@ jobs:
       - name: Prepare sidecar
         env:
           RESOURCE_KEY_PASSPHRASE: ${{ secrets.RESOURCE_KEY_PASSPHRASE }}
+          CREDISCOPE_SOURCE_SHA: ${{ inputs.source_ref }}
         run: powershell -ExecutionPolicy Bypass -File .\src\desktop\scripts\prepare-sidecar.ps1
 
       - name: Sidecar smoke test (with mini analysis)
