@@ -7,6 +7,10 @@ on:
         description: '私有仓库 crediscope-llm 的 ref（仅允许 main 部署）'
         required: true
         default: 'main'
+      feedback_id:
+        description: '可选：安装版验收后按 feedback_id 取回完整证据'
+        required: false
+        default: ''
   push:
     branches: [main]
     paths:
@@ -55,4 +59,10 @@ jobs:
       - name: Verify feedback maintainer read
         env:
           FEEDBACK_MAINTAINER_KEY: ${{ secrets.FEEDBACK_MAINTAINER_KEY }}
-        run: python3 src/desktop/scripts/feedback_tickets.py list --status untriaged --limit 1
+          FEEDBACK_ID: ${{ inputs.feedback_id }}
+        run: |
+          if [ -n "$FEEDBACK_ID" ]; then
+            python3 src/desktop/scripts/feedback_tickets.py get "$FEEDBACK_ID"
+          else
+            python3 src/desktop/scripts/feedback_tickets.py list --status untriaged --limit 1
+          fi

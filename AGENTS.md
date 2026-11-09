@@ -35,6 +35,7 @@
 - **`deploy-worker.yml`**：反馈 Worker 测试 → CF Worker/KV/路由部署 → 维护读取验证。
   main 上 `desktop/scripts/cf_worker/track.js`、对应测试或本 workflow 变化时自动执行，
   也可手动 `gh workflow run deploy-worker.yml -R thomas0x01/crediscope-release -f source_ref=main`；
+  安装版验收可另传 `-f feedback_id=fb_xxx` 按 ID 取回完整证据（缺省只列未处理反馈）。
   仅允许 main 部署。secrets：`CF_API_TOKEN`（Worker Scripts/KV/Routes Edit）、
   `STATS_KEY`（统计读取）、`FEEDBACK_MAINTAINER_KEY`（反馈正本读取和维护事件）
 - **`deploy-demo.yml`**：demo 演示站部署（demo-site/ → R2 demo/），
