@@ -28,6 +28,10 @@ concurrency:
   group: build-${{ inputs.release_tag }}
   cancel-in-progress: false
 
+env:
+  # npmmirror 持续 500 时，让 lockfile 中的 resolved 主机回退到 npm 官方源。
+  NPM_CONFIG_REPLACE_REGISTRY_HOST: https://registry.npmjs.org
+
 jobs:
   # 测试门禁：全量 pytest（含冻结模拟 L0）不过则不构建，
   # 防"忘了跑测试"——回归测试不靠记忆生效
