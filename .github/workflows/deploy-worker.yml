@@ -1,0 +1,58 @@
+name: Deploy Feedback Worker
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: '私有仓库 crediscope-llm 的 ref（仅允许 main 部署）'
+        required: true
+        default: 'main'
+  push:
+    branches: [main]
+    paths:
+      - 'desktop/scripts/cf_worker/track.js'
+      - 'desktop/scripts/cf_worker/*.test.js'
+      - '.github/workflows/deploy-worker.yml'
+
+env:
+  SOURCE_REF: ${{ inputs.source_ref || github.ref_name }}
+
+concurrency:
+  group: deploy-feedback-worker
+  cancel-in-progress: false
+
+jobs:
+  test-and-deploy:
+    if: env.SOURCE_REF == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Checkout private source
+        uses: actions/checkout@v5
+        with:
+          repository: thomas0x01/crediscope-llm
+          ref: ${{ env.SOURCE_REF }}
+          token: ${{ secrets.BUILD_PAT }}
+          path: src
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Run Worker tests
+        run: node --test src/desktop/scripts/cf_worker/track.test.js src/desktop/scripts/cf_worker/feedback_tickets.test.js
+
+      - name: Deploy Worker
+        working-directory: src/desktop/scripts/cf_worker
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          STATS_KEY: ${{ secrets.STATS_KEY }}
+          FEEDBACK_MAINTAINER_KEY: ${{ secrets.FEEDBACK_MAINTAINER_KEY }}
+        run: bash deploy.sh
+
+      - name: Verify feedback maintainer read
+        env:
+          FEEDBACK_MAINTAINER_KEY: ${{ secrets.FEEDBACK_MAINTAINER_KEY }}
+        run: python3 src/desktop/scripts/feedback_tickets.py list --status untriaged --limit 1

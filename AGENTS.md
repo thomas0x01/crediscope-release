@@ -32,6 +32,11 @@
 - **`build.yml`（Desktop Release）**：pytest 门禁 → mac/win 双包
   （smoke 接 mock 迷你分析）→ Release + R2 下载站。触发：
   `gh workflow run build.yml -R thomas0x01/crediscope-release -f source_ref=main -f release_tag=vX.Y.Z[-suffix]`
+- **`deploy-worker.yml`**：反馈 Worker 测试 → CF Worker/KV/路由部署 → 维护读取验证。
+  main 上 `desktop/scripts/cf_worker/track.js`、对应测试或本 workflow 变化时自动执行，
+  也可手动 `gh workflow run deploy-worker.yml -R thomas0x01/crediscope-release -f source_ref=main`；
+  仅允许 main 部署。secrets：`CF_API_TOKEN`（Worker Scripts/KV/Routes Edit）、
+  `STATS_KEY`（统计读取）、`FEEDBACK_MAINTAINER_KEY`（反馈正本读取和维护事件）
 - **`deploy-demo.yml`**：demo 演示站部署（demo-site/ → R2 demo/），
   仅手动触发，与发版链路无关，不加自动触发
 - **`winget.yml`（winget 跟版）**：正式版发出后手动触发
