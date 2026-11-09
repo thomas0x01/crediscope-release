@@ -23,7 +23,7 @@ concurrency:
 
 jobs:
   test-and-deploy:
-    if: env.SOURCE_REF == 'main'
+    if: github.ref_name == 'main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
