@@ -29,6 +29,7 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v5
       - name: Checkout private source
         uses: actions/checkout@v5
         with:
@@ -121,15 +122,7 @@ jobs:
 
       - name: Install pdftotext (poppler)
         # mock LLM 端到端（tests/e2e/test_mock_full_analysis.py）真实跑提取管线
-        run: |
-          for attempt in 1 2 3; do
-            if sudo apt-get -o Acquire::Retries=3 update && sudo apt-get -o Acquire::Retries=3 install -y poppler-utils; then
-              exit 0
-            fi
-            echo "::warning::apt 第 ${attempt} 次失败（可能是 DNS/镜像抖动），15 秒后重试"
-            sleep 15
-          done
-          exit 1
+        run: bash "$GITHUB_WORKSPACE/scripts/ci_install_with_fallback.sh" poppler
 
       # 前端 jsdom 行为测试依赖（static/js/tests/dom-* 套件，由
       # tests/test_frontend_js.py 桥接进 pytest）。hashFiles 守卫：
@@ -179,15 +172,7 @@ jobs:
       - name: Install chromium (playwright)
         if: hashFiles('src/crediscope-llm/tests/e2e_browser/*.spec.js') != ''
         working-directory: src/crediscope-llm
-        run: |
-          for attempt in 1 2 3; do
-            if npx playwright install --with-deps chromium; then
-              exit 0
-            fi
-            echo "::warning::Chromium 第 ${attempt} 次安装失败（可能是 DNS/镜像抖动），15 秒后重试"
-            sleep 15
-          done
-          exit 1
+        run: bash "$GITHUB_WORKSPACE/scripts/ci_install_with_fallback.sh" chromium
 
       - name: Browser e2e smoke (playwright)
         if: hashFiles('src/crediscope-llm/tests/e2e_browser/*.spec.js') != ''
