@@ -1,15 +1,15 @@
 {
-  "version": "0.2.17",
-  "notes": "Crediscope LLM 0.2.17",
-  "pub_date": "2026-11-09T05:10:54.362520+00:00",
+  "version": "0.2.18",
+  "notes": "· 产品反馈工单与维护闭环",
+  "pub_date": "2026-11-10T02:25:14.659904+00:00",
   "platforms": {
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjVlbHoyOXlZS0xUNUpDSytvQ0paMEVQZGp6dWxUNDVscmNXQVRXdkI5eTNDV0RoRmVBa0xsMzRXQXpnZFFOQTR2ZisyZ1ZTYXNPU0gzNXl6eGR2d0FnPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzk0MjAwODAyCWZpbGU6Q3JlZGlzY29wZSBMTE0uYXBwLnRhci5negpFYmFTSEdzdEJJdkxEUElzVHhFaXB1SENjMkRhNFZBMUpQTkhhcUNMV1Zvb09RU0FTRkxiZlI4Vk1uTEw0dFpWakpKTGZTL3Z6SWxDMUNQU0dFOUREUT09Cg==",
-      "url": "https://dl.thomas0x00.uk/releases/v0.2.17/Crediscope.LLM.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybnkwUHh5aVZmclNXODlYcEgxbDRnSC82QkxiQ2UzTmJDU29sWnloams3ZzI5ZEE5aXJueWtBUDNoYWN6SFhXS2hzdnFXVkp6ektud3J4Tkdzcjc2cHdZPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzk0Mjc3NDUxCWZpbGU6Q3JlZGlzY29wZSBMTE0uYXBwLnRhci5negpjb1dMTWZiT252dUlsajh6bHQwdGcxcit0TEtoK29TVTBCY1hYbFNDQVlncTUyenFnS1REWElMTkRyVDR2bllmNDNjazVUU2hScEpPYVhQQm9PQnRDZz09Cg==",
+      "url": "https://dl.thomas0x00.uk/releases/v0.2.18/Crediscope.LLM.app.tar.gz"
     },
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybitkUjNvRmhyaTk0NG9WWWE1NTI0T0tXNFM0V1EzK1hJM0ptVytDSnE5YjNLTlhma3d5R3RJajBRRVdia1dtZm1vS01BaUVFUyt3YXBGQnc5TVplVHdVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzk0MjAxMDEyCWZpbGU6Q3JlZGlzY29wZSBMTE1fMC4yLjE3X3g2NC1zZXR1cC5leGUKdkRyNzZvWGhxRGx6d3d1N0NJaXNJOHk4U3hBYnhRdGd2dmhIb1IxRGw4UndNb3B6Y0dKWGUvR2VNajRhZnZ3TUhQQyt4allxUVdwL3dwYVVqdTJFQ1E9PQo=",
-      "url": "https://dl.thomas0x00.uk/releases/v0.2.17/Crediscope.LLM_0.2.17_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSdVBEUmlsSVRybjZOZVBzaGUvWWcraS9QSnJaR1RTdHFBdnAxS2ZLcENJbXhoNGQ5dEtRWEZtcnVUN3RpcWRKVDNNWmJscEkxSlFtUUE2UFFQNmVpVzFBUXdtV1BFalFFPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzk0Mjc3NDcwCWZpbGU6Q3JlZGlzY29wZSBMTE1fMC4yLjE4X3g2NC1zZXR1cC5leGUKemV2UHd3NmlvdEd5WW55cmxZOU9sVGhPdFFhbStUdzR1K1NCWC9PdDZqY3Q4RTdyWkpSQ3ErWWVZUmswaWhKbkRJUkdwZG5jYXhFNWsvNnNhYUVGQ3c9PQo=",
+      "url": "https://dl.thomas0x00.uk/releases/v0.2.18/Crediscope.LLM_0.2.18_x64-setup.exe"
     }
   }
 }
