@@ -1,0 +1,34 @@
+name: Send feedback follow-up
+on:
+  workflow_dispatch:
+    inputs:
+      request_id:
+        description: One-time request handle
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  followup:
+    if: github.ref == 'refs/heads/main' && github.actor == github.repository_owner && github.triggering_actor == github.repository_owner
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v5
+        with:
+          path: client
+          repository: thomas0x01/crediscope-llm
+          ref: main
+          token: ${{ secrets.BUILD_PAT }}
+          persist-credentials: false
+          sparse-checkout: desktop/scripts/feedback_tickets.py
+          sparse-checkout-cone-mode: false
+      - name: Append and verify follow-up
+        env:
+          REQUEST: ${{ secrets[format('FEEDBACK_REQUEST_{0}', inputs.request_id)] }}
+          FEEDBACK_MAINTAINER_KEY: ${{ secrets.FEEDBACK_MAINTAINER_KEY }}
+          PYTHONPATH: client/desktop/scripts
+        run: python3 scripts/feedback_followup.py
