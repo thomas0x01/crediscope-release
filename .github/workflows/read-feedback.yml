@@ -1,0 +1,59 @@
+name: Read recent feedback
+on:
+  workflow_dispatch:
+    inputs:
+      recipient:
+        description: One-time public encryption certificate (PEM)
+        type: string
+        required: true
+      limit:
+        description: Number of recently updated tickets (1-10)
+        type: string
+        default: '2'
+        required: true
+permissions: {}
+jobs:
+  read:
+    if: github.ref == 'refs/heads/main' && github.actor == github.repository_owner && github.triggering_actor == github.repository_owner
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          repository: thomas0x01/crediscope-llm
+          ref: main
+          token: ${{ secrets.BUILD_PAT }}
+          persist-credentials: false
+          sparse-checkout: desktop/scripts/feedback_tickets.py
+          sparse-checkout-cone-mode: false
+      - name: Read tickets into encrypted envelope
+        env:
+          FEEDBACK_MAINTAINER_KEY: ${{ secrets.FEEDBACK_MAINTAINER_KEY }}
+          RECIPIENT: ${{ inputs.recipient }}
+          LIMIT: ${{ inputs.limit }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$LIMIT" =~ ^([1-9]|10)$ ]]
+          printf '%s\n' "$RECIPIENT" > "$RUNNER_TEMP/recipient.pem"
+          PYTHONPATH=desktop/scripts python3 - <<'PY' | openssl cms -encrypt -binary -aes256 -outform DER -out "$RUNNER_TEMP/feedback.cms" "$RUNNER_TEMP/recipient.pem"
+          import json, os, sys
+          from feedback_tickets import fetch_ticket_json
+          from urllib.parse import quote
+
+          try:
+              listing = fetch_ticket_json(params={'limit': int(os.environ['LIMIT'])})
+              tickets = []
+              for row in listing['tickets']:
+                  detail = fetch_ticket_json('/' + quote(row['feedback_id'], safe=''))
+                  tickets.append({'summary': row, 'detail': detail})
+              json.dump(tickets, sys.stdout, ensure_ascii=False)
+          except (Exception, SystemExit):
+              sys.exit('Unable to retrieve feedback')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: feedback-envelope
+          path: ${{ runner.temp }}/feedback.cms
+          retention-days: 1
+          if-no-files-found: error

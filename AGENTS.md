@@ -32,6 +32,7 @@
 - **`build.yml`（Desktop Release）**：pytest 门禁 → mac/win 双包
   （smoke 接 mock 迷你分析）→ Release + R2 下载站。触发：
   `gh workflow run build.yml -R thomas0x01/crediscope-release -f source_ref=main -f release_tag=vX.Y.Z[-suffix]`
+- **`read-feedback.yml`（查询产品反馈）**：在本仓执行 `bash scripts/read_recent_feedback.sh 2`，按最后更新时间跨状态返回最近两单的摘要和完整事件。参数范围 1–10。维护者用已登录的 `gh` 发起查询，一次性公钥供 runner 加密，密文制品保留一天；脚本在本机解密并将 JSON 写到标准输出，结束时删除临时密钥。只读查询仅允许仓库所有者从 main 手动触发。
 - **`deploy-worker.yml`**：反馈 Worker 测试 → CF Worker/KV/路由部署 → 维护读取验证。
   main 上 `desktop/scripts/cf_worker/track.js`、对应测试或本 workflow 变化时自动执行，
   也可手动 `gh workflow run deploy-worker.yml -R thomas0x01/crediscope-release -f source_ref=main`；
