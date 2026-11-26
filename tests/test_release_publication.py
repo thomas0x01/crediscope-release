@@ -227,16 +227,18 @@ class OfflineWinget:
             winget.main()
 
 
-def evidence(candidate):
+def evidence(candidate, *, windows_from="9.4.0", windows_from_hashes=None):
     assets = candidate["assets"]
     now = datetime.now(timezone.utc).isoformat()
     ids = {"tag": candidate["tag"], "evidence_schema": 2, "candidate_id": candidate["candidate_id"],
            "build_id": candidate["build_id"], "candidate_created_at": candidate["created_at"]}
     hashes = rp.executable_hashes(candidate, "windows-setup")
     details = [{"name": name, "pass": True, "details": ["✓ synthetic observation"]} for name in rp.WINDOWS_JOURNEYS]
-    next(row for row in details if row["name"] == "J9_upgrade_path").update(
-        verified_setup_sha256=assets["windows-setup"]["sha256"], running_executables=hashes,
-        from_version="9.4.0", observed_version=candidate["version"])
+    upgrade = next(row for row in details if row["name"] == "J9_upgrade_path")
+    upgrade.update(verified_setup_sha256=assets["windows-setup"]["sha256"], running_executables=hashes,
+                   from_version=windows_from, observed_version=candidate["version"])
+    if windows_from_hashes is not None:
+        upgrade["from_running_executables"] = windows_from_hashes
     win = {**ids, "platform": rc.WIN, "app_version": candidate["version"], "source_ref": candidate["source_sha"],
            "artifact_name": assets["windows-setup"]["name"], "artifact_sha256": assets["windows-setup"]["sha256"],
            "required": sorted(rp.WINDOWS_JOURNEYS), "executed": sorted(rp.WINDOWS_JOURNEYS),
@@ -899,6 +901,184 @@ class OfflinePublicationTests(unittest.TestCase):
         self.assertEqual(self.hub.latest, candidate["tag"])
         self.assertEqual(self.hub.updates, self.hub.r2["latest.json"])
         self.assertEqual(self.hub.mirror, self.hub.updates)
+
+    def assert_cli_promote_rejected(self, candidate, records):
+        self.hub.events.clear()
+        with self.assertRaises(SystemExit) as exc:
+            self.cli_promote(candidate, records)
+        self.assertEqual(exc.exception.code, 1)
+        self.assertEqual(self.hub.events, [])
+
+    def test_cli_promote_rejects_windows_j9_from_unpromoted_candidate(self):
+        """R02: a passing upgrade from another candidate is not a formal upgrade receipt."""
+        self.hub = OfflineHub("v9.9.0")
+        previous, tag = "v9.10.0", "v9.11.0"
+        self.cli_build(previous, self.staged(previous))
+        candidate = self.cli_build(tag, self.staged(tag))
+        self.assertTrue(self.hub.release(previous)["prerelease"])
+        self.assertEqual(self.hub.latest, "v9.9.0")
+        self.assert_cli_promote_rejected(candidate, evidence(candidate, windows_from="9.10.0"))
+        self.cli_promote(candidate, evidence(candidate, windows_from="9.9.0"))
+        self.assertEqual(self.hub.latest, tag)
+
+    def test_cli_promote_rejects_windows_j9_skipping_formal_release(self):
+        """R02: a once-formal baseline cannot skip the current Latest on first promotion."""
+        self.hub = OfflineHub("v9.9.0")
+        previous, tag = "v9.10.0", "v9.11.0"
+        baseline = self.cli_build(previous, self.staged(previous))
+        candidate = self.cli_build(tag, self.staged(tag))
+        self.cli_promote(baseline, evidence(baseline, windows_from="9.9.0"))
+        self.assertEqual(self.hub.latest, previous)
+        self.assert_cli_promote_rejected(candidate, evidence(candidate, windows_from="9.9.0"))
+        self.cli_promote(candidate, evidence(candidate, windows_from="9.10.0",
+                                            windows_from_hashes=rp.executable_hashes(baseline, "windows-setup")))
+        self.assertEqual(self.hub.latest, tag)
+
+    def test_cli_promote_requires_observed_windows_j9_baseline_and_valid_latest(self):
+        tag = "v9.4.1"
+        candidate = self.cli_build(tag, self.staged(tag))
+        win, mac = evidence(candidate)
+        next(row for row in win["details"] if row["name"] == "J9_upgrade_path").pop("from_version")
+        self.assert_cli_promote_rejected(candidate, (win, mac))
+        for flag in ("draft", "prerelease"):
+            with self.subTest(latest_is=flag), patch.dict(self.hub.releases["v9.4.0"], {flag: True}):
+                self.assert_cli_promote_rejected(candidate, evidence(candidate))
+        before = copy.deepcopy(self.hub)
+        with self.subTest("unpublished source version"):
+            self.assert_cli_promote_rejected(candidate, evidence(candidate, windows_from="9.3.9"))
+        with self.subTest("no current Latest"):
+            self.hub = before
+            self.hub.latest = self.hub.updates = None
+            del self.hub.r2["latest.json"]
+            self.assert_cli_promote_rejected(candidate, evidence(candidate))
+
+    def test_cli_promote_retry_after_latest_checks_windows_j9_formal_history(self):
+        """R02: after Latest flips, only a formal source release can support a retry."""
+        self.hub = OfflineHub("v9.9.0")
+        previous, tag = "v9.10.0", "v9.11.0"
+        self.cli_build(previous, self.staged(previous))
+        candidate = self.cli_build(tag, self.staged(tag))
+        records = evidence(candidate, windows_from="9.9.0")
+        self.hub.fail_beta_pointer = True
+        with self.assertRaises(SystemExit) as exc:
+            self.cli_promote(candidate, records)
+        self.assertEqual(exc.exception.code, 1)
+        self.assertEqual(self.hub.latest, tag)
+        self.assertIsNone(self.hub.mirror)
+        self.hub.fail_beta_pointer = False
+        self.hub.events.clear()
+        self.cli_promote(candidate, records)
+        self.assertNotIn(("latest", tag), self.hub.events)
+        self.assertEqual(self.hub.updates, self.hub.r2["latest.json"])
+        self.assertEqual(self.hub.mirror, self.hub.updates)
+
+        for version, changes in (("9.10.0", {}), ("9.8.0", {}), ("9.9.0", {"draft": True}),
+                                 ("9.9.0", {"tag_name": "v9.8.0"})):
+            with self.subTest(windows_from=version, changes=changes), patch.dict(self.hub.releases):
+                if changes:
+                    key = f"v{version}"
+                    self.hub.releases[key] = dict(self.hub.releases[key], **changes)
+                self.assert_cli_promote_rejected(candidate, evidence(candidate, windows_from=version))
+
+    def _windows_j9_builds(self):
+        self.hub = OfflineHub("v9.9.0")
+        baseline_tag, tag = "v9.10.0", "v9.11.0"
+        superseded = self.cli_build(baseline_tag, self.staged(baseline_tag))
+        formal = self.cli_build(baseline_tag, self.staged(baseline_tag))
+        self.cli_promote(formal, evidence(formal, windows_from="9.9.0"))
+        candidate = self.cli_build(tag, self.staged(tag))
+        return superseded, formal, candidate
+
+    def test_cli_promote_requires_observed_windows_j9_build_on_both_sides_of_latest(self):
+        """R02: the same Windows source version can identify two different builds."""
+        superseded, formal, candidate = self._windows_j9_builds()
+        superseded_hashes, formal_hashes, target_hashes = (
+            rp.executable_hashes(release, "windows-setup") for release in (superseded, formal, candidate)
+        )
+        for role in formal_hashes:
+            self.assertNotEqual(superseded_hashes[role], formal_hashes[role])
+            self.assertNotEqual(target_hashes[role], formal_hashes[role])
+        valid = evidence(candidate, windows_from=formal["version"], windows_from_hashes=formal_hashes)
+        invalid = {
+            "missing": None,
+            "partial": {"desktop": formal_hashes["desktop"]},
+            "wrong desktop": dict(formal_hashes, desktop=target_hashes["desktop"]),
+            "wrong sidecar": dict(formal_hashes, sidecar=target_hashes["sidecar"]),
+            "wrong pair (target)": target_hashes,
+            "wrong pair (superseded)": superseded_hashes,
+            "extra role": dict(formal_hashes, extra=formal_hashes["desktop"]),
+        }
+
+        def reject(phase, cases):
+            for case in cases:
+                with (self.subTest(phase=phase, case=case),
+                      patch.object(self, "hub", copy.deepcopy(self.hub)),
+                      patch.dict(self._git_files)):
+                    self.assert_cli_promote_rejected(candidate, evidence(
+                        candidate, windows_from=formal["version"], windows_from_hashes=invalid[case]))
+
+        reject("first promotion", invalid)
+        self.hub.fail_updates = True
+        with self.assertRaises(SystemExit) as exc:
+            self.cli_promote(candidate, valid)
+        self.assertEqual(exc.exception.code, 1)
+        self.assertEqual(self.hub.latest, formal["tag"])
+        self.assertEqual(self.hub.read_r2_json("latest.json")["version"], candidate["version"])
+        self.hub.fail_updates = False
+        reject("retry before Latest", ("wrong pair (superseded)",))
+
+        self.hub.fail_beta_pointer = True
+        with self.assertRaises(SystemExit) as exc:
+            self.cli_promote(candidate, valid)
+        self.assertEqual(exc.exception.code, 1)
+        self.assertEqual(self.hub.latest, candidate["tag"])
+        self.assertNotEqual(self.hub.mirror, self.hub.updates)
+        self.hub.fail_beta_pointer = False
+        reject("retry after Latest", invalid)
+
+        self.hub.events.clear()
+        self.cli_promote(candidate, valid)
+        self.assertNotIn(("latest", candidate["tag"]), self.hub.events)
+        self.assertEqual(self.hub.updates, self.hub.r2["latest.json"])
+        self.assertEqual(self.hub.mirror, self.hub.updates)
+
+    def test_cli_promote_checks_windows_j9_historical_manifest_and_publication(self):
+        """R02: a damaged v2 baseline must not be treated as a legacy release on retry."""
+        superseded, formal, candidate = self._windows_j9_builds()
+        valid = evidence(candidate, windows_from=formal["version"],
+                         windows_from_hashes=rp.executable_hashes(formal, "windows-setup"))
+        self.cli_promote(candidate, valid)
+        tag = formal["tag"]
+        key = rp._publication_key(tag)
+        manifest = self.hub.assets[tag][rc.MANIFEST_NAME]
+        publication = self.hub.r2[key]
+        cases = {
+            "ready publication but missing attachment": (None, None, publication),
+            "pending attachment only": (None, b"pending", None),
+            "invalid manifest without publication": (b"{}", None, None),
+            "invalid publication without manifest": (None, None, b"{}"),
+            "pending publication": (manifest, None, json.dumps({"status": "pending", "candidate": formal}).encode()),
+            "publication mismatch": (manifest, None, json.dumps({"status": "ready", "candidate": superseded}).encode()),
+        }
+        for case, (manifest_bytes, pending, publication_bytes) in cases.items():
+            with (self.subTest(case=case), patch.object(self, "hub", copy.deepcopy(self.hub)),
+                  patch.dict(self._git_files)):
+                assets = dict(self.hub.assets[tag])
+                del assets[rc.MANIFEST_NAME]
+                if manifest_bytes is not None:
+                    assets[rc.MANIFEST_NAME] = manifest_bytes
+                if pending is not None:
+                    assets[rp.PENDING_NAME] = pending
+                self.hub.add_release(tag, assets, prerelease=False)
+                if publication_bytes is None:
+                    del self.hub.r2[key]
+                else:
+                    self.hub.r2[key] = publication_bytes
+                self.assert_cli_promote_rejected(candidate, valid)
+
+        del self.hub.r2[key]
+        self.assert_cli_promote_rejected(candidate, evidence(candidate, windows_from=formal["version"]))
+        self.cli_promote(candidate, valid)
 
     def test_cli_rejects_contradictory_details_and_prebuild_observations_without_writes(self):
         candidate = self.build("v9.4.1")

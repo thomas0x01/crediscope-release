@@ -67,5 +67,7 @@
   本仓 public，泄露面必须最小）
 - `latest.json` / `page_state.json` 是正式转正后的仓库镜像。正式版本取 GitHub Latest，内测候选取 R2 当前首页，`release-beta.json` 随首页修复。候选制品存 `releases/<tag>/<candidate_id>/`，保留旧路径供已发布链接使用。显式 `pre_tag` 在构建时固定内测候选 ID。
 - 应用仓先合入原生制品身份、生成器与候选回执，再切换枢纽工作流。切换前让旧发布运行全部退出，再核对 GitHub Latest、R2 和 `updates`。历史正式版延用既有首页和更新链接。新转正和 winget 需要第二版候选清单，旧候选须重建并重新取证。历史正式版补提 winget 留给独立审计，既有 winget 清单可以继续使用。
+- Windows J9 首次转正前核对实测起点版本与当前有效的 GitHub Latest。Latest 已指向同一候选 ID 时，按起点 tag 读取历史正式发布，核对返回 tag，并要求非草稿、非预发布。起点有 v2 候选清单时，`from_running_executables` 必须与已验证清单的 Windows `desktop`、`sidecar` 两项 SHA-256 精确相等。若有 R2 publication 记录，须为 ready 且与 GitHub 清单一致。
+- Windows J9 存量起点在 GitHub 无候选清单、无暂停标记且 R2 无 publication 记录时，沿用正式 tag 和已上传的历史安装件核对。该口径仅证明版本，无旧执行件身份凭据。存在任一新式发布凭据或暂停标记时，按新式规则核验，缺失或损坏的清单阻断转正与续跑。上述核对均先于发布写入。macOS 原生更新仍要求从较旧版本升级。
 - 若转正中断，先核对 R2 `latest.json`、`updates` 和 GitHub Latest，再使用同一候选及回执重试。原生构建需要重跑时重跑全部构建任务，单独重试发布任务可沿用同批产物。共享并发组只保证串行，GitHub Actions 可替换排队任务，取消的运行需重新触发。
 - 本仓 public：**任何文件提交前检查不含密钥/客户数据/私有路径**

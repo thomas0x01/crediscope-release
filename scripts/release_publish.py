@@ -88,10 +88,12 @@ def _windows_evidence(candidate, record, earliest, latest):
             raise ValueError("Windows journey detail contradicts its summary")
         by_name[row["name"]] = row
     upgrade = by_name["J9_upgrade_path"]
+    baseline_tag = f"v{upgrade.get('from_version')}"
     if (upgrade.get("verified_setup_sha256") != setup["sha256"] or upgrade.get("running_executables") != hashes
             or upgrade.get("observed_version") != candidate["version"]
-            or rc.stable_version(f"v{upgrade.get('from_version')}") >= rc.stable_version(candidate["tag"])):
+            or rc.stable_version(baseline_tag) >= rc.stable_version(candidate["tag"])):
         raise ValueError("Windows J9 detail does not prove the candidate upgrade")
+    return baseline_tag, upgrade.get("from_running_executables")
 
 
 def _macos_evidence(candidate, record, earliest, latest):
@@ -130,8 +132,9 @@ def verify_evidence(candidate, windows, macos, *, published_at=None):
     if published_at:
         earliest = max(earliest, rc.timestamp(published_at))
     latest = datetime.now(timezone.utc) + timedelta(minutes=2)
-    _windows_evidence(candidate, windows, earliest, latest)
+    baseline = _windows_evidence(candidate, windows, earliest, latest)
     _macos_evidence(candidate, macos, earliest, latest)
+    return baseline
 
 
 def _utc_date(stamp):
@@ -318,15 +321,21 @@ def _candidate_from_release(backend, release, directory, publication):
     return candidate
 
 
+def _formal_candidate(backend, release, directory):
+    publication = _read_publication(backend, release["tag_name"], require_ready=True)
+    if publication is not None or any(asset.get("name") in (rc.MANIFEST_NAME, PENDING_NAME) for asset in release["assets"]):
+        return _candidate_from_release(backend, release, directory, publication)
+    return None
+
+
 def _current_formal(backend, work):
     release = backend.release("latest")
     if release is None:
         return None, None
     tag = rc.release_tag(release.get("tag_name"), stable=True)
     _check_release(release, tag, prerelease=False)
-    publication = _read_publication(backend, tag, require_ready=True)
-    if publication is not None or any(asset.get("name") in (rc.MANIFEST_NAME, PENDING_NAME) for asset in release["assets"]):
-        candidate = _candidate_from_release(backend, release, work / "current-formal", publication)
+    candidate = _formal_candidate(backend, release, work / "current-formal")
+    if candidate is not None:
         return download_entry(candidate, _candidate_stamp(release)), candidate
     return _legacy_entry(release, tag, backend.legacy_notes(tag)), None
 
@@ -590,12 +599,28 @@ def promote(backend, evidence_source, work, tag, windows, macos):
     formal, current = _current_formal(backend, work)
     if formal and rc.stable_version(tag) < rc.stable_version(formal["tag"]):
         raise ValueError("promotion would downgrade GitHub Latest")
-    if release.get("prerelease") is not True and (not current or current["tag"] != tag):
-        raise ValueError("only a new candidate or the same Latest may be promoted")
     directory = work / "candidate"
     candidate = _candidate_from_release(backend, release, directory, publication)
+    same_latest = current is not None and current["candidate_id"] == candidate["candidate_id"]
+    if release.get("prerelease") is not True and not same_latest:
+        raise ValueError("only a new candidate or the same Latest may be promoted")
     stamp = _candidate_stamp(release)
-    verify_evidence(candidate, windows, macos, published_at=stamp)
+    baseline_tag, observed_baseline = verify_evidence(candidate, windows, macos, published_at=stamp)
+    baseline = current
+    if same_latest:
+        baseline_release = backend.release(baseline_tag)
+        if baseline_release is None:
+            raise ValueError(f"Windows J9 baseline release unavailable: {baseline_tag}")
+        _check_release(baseline_release, baseline_tag, prerelease=False)
+        baseline = _formal_candidate(backend, baseline_release, work / "baseline-formal")
+        if baseline is None:
+            _legacy_entry(baseline_release, baseline_tag, "")
+    elif formal is None:
+        raise ValueError("Windows J9 requires an established formal GitHub Latest")
+    elif baseline_tag != formal["tag"]:
+        raise ValueError(f"Windows J9 baseline {baseline_tag} must match GitHub Latest {formal['tag']}")
+    if baseline is not None and observed_baseline != executable_hashes(baseline, "windows-setup"):
+        raise ValueError(f"Windows J9 baseline lacks the exact desktop and sidecar hashes for {baseline_tag}")
     source = candidate_source(evidence_source, candidate["source_sha"], work / "candidate-source")
     for role, asset in candidate["assets"].items():
         backend.download_r2(rc.asset_key(candidate, role), directory / asset["name"])
@@ -620,7 +645,7 @@ def promote(backend, evidence_source, work, tag, windows, macos):
     if updates != latest.read_bytes():
         backend.publish_updates(latest)
     _visible(lambda: backend.read_updates_bytes() == latest.read_bytes(), "GitHub updates manifest")
-    if current is None or current["tag"] != tag:
+    if not same_latest:
         backend.mark_latest(tag)
     manifest = directory / rc.MANIFEST_NAME
     _visible(lambda: _release_matches(backend, "latest", candidate, manifest, prerelease=False), "GitHub Latest")
