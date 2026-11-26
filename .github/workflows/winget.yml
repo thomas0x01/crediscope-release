@@ -10,8 +10,13 @@ on:
         required: false
         default: '75'
 
+concurrency:
+  group: winget-${{ inputs.release_tag }}
+  cancel-in-progress: false
+
 jobs:
   submit:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     # 看守上限默认 75 分钟 + 开 PR/应答余量（调大 input 时同步调此处）
     timeout-minutes: 150
@@ -21,7 +26,8 @@ jobs:
         with:
           python-version: '3.12'
       - name: Submit winget manifest PR
-        run: python3 scripts/winget_update.py "${{ inputs.release_tag }}"
+        run: python3 scripts/winget_update.py "$RELEASE_TAG"
         env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
           WINGET_TOKEN: ${{ secrets.WINGET_TOKEN }}
           WINGET_AUTO_ANSWER_MINUTES: ${{ inputs.auto_answer_minutes }}

@@ -3,12 +3,12 @@ r"""winget-pkgs 版本跟提脚本（hub winget.yml 手动触发，亦可本地�
 
 用法: python3 scripts/winget_update.py vX.Y.Z
   - 拒绝带后缀 tag（test/beta/rc 只走 prerelease，不进 winget）
-  - 从本仓 Release 取 x64-setup.exe 资产的 sha256 digest
+  - 核对正式 Release 的候选清单，使用确切的 Windows setup URL 和 SHA-256
   - 渲染三件 manifest——InstallerUrl 一律 dl.thomas0x00.uk 直链口径
     （勿改 GitHub 直链：境内可达性是选 dl 站的原因；也因此不用第三方
     winget-releaser Action，它会把 URL 改写成 GitHub release 直链）
-  - 推分支 thomas0x01.Crediscope-<ver> 到 fork thomas0x01/winget-pkgs，
-    向 microsoft/winget-pkgs 开 PR
+  - 使用 fork thomas0x01/winget-pkgs 的 thomas0x01.Crediscope-<ver> 分支。
+    续跑先核对分支内容和已有 PR，仅补同一候选缺失的 manifest。
   - 开 PR 后自动应答看守（默认 75 分钟，WINGET_AUTO_ANSWER_MINUTES 调，
     0=关）：needsCLA 回 agree、域名问询先 GET 实测 InstallerUrl 再发佐证
     （实测不可达则不发，非零退出告警）；人工审不阻塞，到点正常退出
@@ -17,6 +17,8 @@ ARP 元数据（AppsAndFeaturesEntries）来自 2026-10-13 VM 注册表实测：
 HKCU\...\Uninstall\Crediscope LLM（每用户安装，NSIS /S 静默可验）。
 环境: WINGET_TOKEN（classic PAT，public_repo 权限）。
 """
+from __future__ import annotations
+
 import base64
 import json
 import os
@@ -26,6 +28,8 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+
+import release_candidate as rc
 
 API = "https://api.github.com"
 HUB = "thomas0x01/crediscope-release"
@@ -47,7 +51,7 @@ UpgradeBehavior: install
 ReleaseDate: {date}
 Installers:
 - Architecture: x64
-  InstallerUrl: https://dl.thomas0x00.uk/releases/{tag}/{asset}
+  InstallerUrl: {url}
   InstallerSha256: {sha}
   AppsAndFeaturesEntries:
   - DisplayName: Crediscope LLM
@@ -80,7 +84,7 @@ ManifestVersion: 1.6.0
 """
 
 
-def api(method: str, path: str, body: dict | None = None) -> dict:
+def api(method: str, path: str, body: dict | None = None, *, optional: bool = False):
     req = urllib.request.Request(
         f"{API}/{path}", method=method,
         headers={
@@ -92,9 +96,11 @@ def api(method: str, path: str, body: dict | None = None) -> dict:
     if data:
         req.add_header("Content-Type", "application/json")
     try:
-        with urllib.request.urlopen(req, data) as r:
+        with urllib.request.urlopen(req, data, timeout=30) as r:
             return json.loads(r.read() or b"{}")
     except urllib.error.HTTPError as e:
+        if optional and e.code == 404:
+            return None
         sys.exit(f"API {method} /{path} -> {e.code}: {e.read().decode()[:400]}")
 
 
@@ -239,9 +245,7 @@ def auto_answer(pr: dict, ctx: dict) -> None:
             recent = others[-_DOMAIN_Q_LOOKBACK:]
             if any(_DOMAIN_Q_RE.search(str(c.get("body") or ""))
                    for c in recent):
-                url = ("https://dl.thomas0x00.uk/releases/"
-                       f"{ctx['tag']}/{ctx['asset']}")
-                status = _installer_reachable(url)
+                status = _installer_reachable(ctx["url"])
                 if status not in (200, 206):
                     sys.exit(f"域名问询在场但 InstallerUrl 实测不可达（HTTP "
                              f"{status}）——不发佐证，先修分发链再应答")
@@ -265,51 +269,151 @@ def auto_answer(pr: dict, ctx: dict) -> None:
           "剩余事项归人工审节奏，不算失败")
 
 
-def main() -> None:
-    tag = sys.argv[1] if len(sys.argv) > 1 else ""
-    if not re.fullmatch(r"v\d+\.\d+\.\d+", tag):
-        sys.exit(f"tag 必须是干净正式版 vX.Y.Z（拒绝后缀），收到: {tag!r}")
-    ver = tag[1:]
+def installer_context(tag, release, manifest):
+    rc.release_tag(tag, stable=True)
+    if release.get("draft") is not False or release.get("prerelease") is not False:
+        raise ValueError("winget requires a promoted release")
+    candidate = rc.validate_candidate(rc.json_object(manifest.decode("utf-8")), tag)
+    rc.verify_release_assets(candidate, release, manifest)
+    date = release["published_at"][:10]
+    if not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", date):
+        raise ValueError("invalid GitHub publication date")
+    return {"pkgid": PKGID, "ver": candidate["version"], "tag": tag, "date": date,
+            "sha": candidate["assets"]["windows-setup"]["sha256"].upper(),
+            "url": rc.asset_url(candidate, "windows-setup"), "candidate_id": candidate["candidate_id"]}
 
-    rel = api("GET", f"repos/{HUB}/releases/tags/{tag}")
-    asset = next((a for a in rel["assets"]
-                  if re.search(r"_x64-setup\.exe$", a["name"])), None)
-    if not asset:
-        sys.exit(f"Release {tag} 无 x64-setup.exe 资产")
-    sha = asset.get("digest", "").removeprefix("sha256:").upper()
-    if not sha:
-        sys.exit("资产缺 sha256 digest（hub build 上传资产时应带）")
-    date = rel["published_at"][:10]
 
-    ctx = {"pkgid": PKGID, "ver": ver, "tag": tag,
-           "asset": asset["name"], "sha": sha, "date": date}
-    files = {
-        f"{PKGID}.installer.yaml": INSTALLER_TMPL.format(**ctx),
-        f"{PKGID}.locale.en-US.yaml": LOCALE_TMPL.format(**ctx),
-        # version manifest 文件名规范：仅 PackageIdentifier + .yaml，
-        # 不带 .version 中缀（2026-10-13 首提被 bot 打回实证）
-        f"{PKGID}.yaml": VERSION_TMPL.format(**ctx),
-    }
+def _branch_head(branch):
+    ref = api("GET", f"repos/{FORK}/git/ref/heads/{branch}", optional=True)
+    return rc.source_sha(ref["object"]["sha"]) if ref is not None else None
 
+
+def _existing_pr(branch, marker):
+    owner = FORK.split("/", 1)[0]
+    query = urllib.parse.urlencode({"state": "all", "head": f"{owner}:{branch}", "per_page": 100})
+    pulls = api("GET", f"repos/{UPSTREAM}/pulls?{query}")
+    if not isinstance(pulls, list) or len(pulls) > 1:
+        raise ValueError("ambiguous PR history for this winget branch")
+    if not pulls:
+        return None
+    pr = pulls[0]
+    head, base = pr["head"], pr["base"]
+    markers = [line for line in (pr.get("body") or "").splitlines() if line.startswith("Candidate: ")]
+    if ((head.get("repo") or {}).get("full_name") != FORK or head.get("ref") != branch
+            or (base.get("repo") or {}).get("full_name") != UPSTREAM or base.get("ref") != "master"
+            or (markers and markers != [marker])):
+        raise ValueError("existing winget PR belongs to a different branch, base or candidate")
+    if pr["state"] != "open" and not (pr["state"] == "closed" and pr.get("merged_at")):
+        raise ValueError(f"existing winget PR was closed without merging: {pr['html_url']}")
+    return pr
+
+
+def _branch_files(head, base, directory, files):
+    upstream_owner, fork_owner = (repo.split("/", 1)[0] for repo in (UPSTREAM, FORK))
+    comparison = api("GET", f"repos/{UPSTREAM}/compare/{upstream_owner}:{base}...{fork_owner}:{head}?per_page=1")
+    changes = comparison["files"]
+    if any(row.get("status") != "added" or row.get("filename") not in files for row in changes):
+        raise ValueError("winget branch has changes outside the expected new candidate manifests")
+    entries = api("GET", f"repos/{FORK}/contents/{directory}?ref={head}", optional=True)
+    if entries is None:
+        entries = []
+    if not isinstance(entries, list):
+        raise ValueError("winget manifest directory is not a directory")
+    present = set()
+    for entry in entries:
+        path = entry["path"]
+        if path not in files or entry["type"] != "file" or path in present:
+            raise ValueError("winget branch contains unexpected candidate files")
+        blob = api("GET", f"repos/{FORK}/contents/{path}?ref={head}")
+        if blob.get("encoding") != "base64" or base64.b64decode("".join(blob["content"].split()), validate=True) != files[path].encode():
+            raise ValueError(f"winget manifest differs from this candidate: {path}")
+        present.add(path)
+    if not {row["filename"] for row in changes} <= present:
+        raise ValueError("winget branch comparison disagrees with candidate files")
+    if present and f"{directory}/{PKGID}.installer.yaml" not in present:
+        raise ValueError("partial winget branch has no installer binding it to this candidate")
+    return present
+
+
+def _add_missing_files(branch, head, files, missing, marker):
+    response = api("POST", "graphql", {
+        "query": "mutation ($input: CreateCommitOnBranchInput!) { createCommitOnBranch(input: $input) { commit { oid } } }",
+        "variables": {"input": {
+            "branch": {"repositoryNameWithOwner": FORK, "branchName": branch},
+            "expectedHeadOid": head,
+            "message": {"headline": f"Add {branch} manifests", "body": marker},
+            "fileChanges": {"additions": [{"path": path, "contents": base64.b64encode(text.encode()).decode()}
+                                          for path, text in files.items() if path in missing]},
+        }},
+    })
+    if response.get("errors"):
+        raise ValueError("winget could not commit to the checked branch head: " + response["errors"][0]["message"])
+    return rc.source_sha(response["data"]["createCommitOnBranch"]["commit"]["oid"])
+
+
+def _submit(ctx):
+    ver = ctx["ver"]
     branch = f"{PKGID}-{ver}"
-    base = api("GET", f"repos/{FORK}/branches/master")["commit"]["sha"]
-    api("POST", f"repos/{FORK}/git/refs",
-        {"ref": f"refs/heads/{branch}", "sha": base})
-    path = f"manifests/t/thomas0x01/Crediscope/{ver}"
-    for name, text in files.items():
-        api("PUT", f"repos/{FORK}/contents/{path}/{name}",
-            {"message": f"Add {name} for {PKGID} {ver}", "branch": branch,
-             "content": base64.b64encode(text.encode()).decode()})
+    directory = f"manifests/t/thomas0x01/Crediscope/{ver}"
+    files = {f"{directory}/{PKGID}{suffix}": template.format(**ctx) for suffix, template in (
+        (".installer.yaml", INSTALLER_TMPL), (".locale.en-US.yaml", LOCALE_TMPL), (".yaml", VERSION_TMPL),
+    )}
+    marker = f"Candidate: `{ctx['candidate_id']}`."
+    pr = _existing_pr(branch, marker)
+    head = _branch_head(branch)
+    upstream_head = rc.source_sha(api("GET", f"repos/{UPSTREAM}/branches/master")["commit"]["sha"])
+    if pr is not None:
+        pr_head = rc.source_sha(pr["head"]["sha"])
+        if (head != pr_head and (head is not None or pr["state"] == "open")
+                or _branch_files(pr_head, upstream_head, directory, files) != files.keys()):
+            raise ValueError("existing winget PR does not point to the complete candidate manifests")
+        return pr
 
-    pr = api("POST", f"repos/{UPSTREAM}/pulls",
-             {"title": f"Add version {ver} of {PKGID}",
-              "head": f"thomas0x01:{branch}", "base": "master",
-              "body": (f"Version bump for {PKGID} {ver}. Installer URL points "
-                       "to the publisher-owned distribution site "
-                       "(dl.thomas0x00.uk); SHA256 verified against the "
-                       "signed release artifact.")})
+    if api("GET", f"repos/{UPSTREAM}/contents/{directory}?ref={upstream_head}", optional=True) is not None:
+        raise ValueError("upstream already contains this winget version")
+    if head is None:
+        head = rc.source_sha(api("GET", f"repos/{FORK}/branches/master")["commit"]["sha"])
+        if _branch_files(head, upstream_head, directory, files):
+            raise ValueError("fork master already contains this winget version")
+        api("POST", f"repos/{FORK}/git/refs", {"ref": f"refs/heads/{branch}", "sha": head})
+        present = set()
+    else:
+        present = _branch_files(head, upstream_head, directory, files)
+    if files.keys() - present:
+        head = _add_missing_files(branch, head, files, files.keys() - present, marker)
+    if (_branch_files(head, upstream_head, directory, files) != files.keys() or _branch_head(branch) != head):
+        raise ValueError("winget branch does not contain the complete candidate manifests")
+    pr = api("POST", f"repos/{UPSTREAM}/pulls", {
+        "title": f"Add version {ver} of {PKGID}", "head": f"{FORK.split('/', 1)[0]}:{branch}", "base": "master",
+        "body": (f"Version bump for {PKGID} {ver}. Installer URL points to the publisher-owned distribution "
+                 f"site (dl.thomas0x00.uk). SHA256 verified against the signed release artifact.\n\n{marker}"),
+    })
+    if pr["head"]["sha"] != head:
+        raise ValueError(f"winget PR head changed during creation: {pr['html_url']}")
+    return pr
+
+
+def main() -> None:
+    try:
+        tag = rc.release_tag(sys.argv[1] if len(sys.argv) > 1 else "", stable=True)
+        rel = api("GET", f"repos/{HUB}/releases/tags/{tag}")
+        if rel.get("draft") is not False or rel.get("prerelease") is not False:
+            raise ValueError("winget requires a promoted release")
+        assets = [asset for asset in rel["assets"] if asset.get("name") == rc.MANIFEST_NAME]
+        if len(assets) != 1 or assets[0].get("state") != "uploaded":
+            raise ValueError("winget requires a complete candidate manifest; historical releases retain their published links")
+        asset_url = f"https://github.com/{HUB}/releases/download/{tag}/{rc.MANIFEST_NAME}"
+        with urllib.request.urlopen(asset_url, timeout=30) as response:
+            manifest = response.read(rc.MANIFEST_MAX_BYTES + 1)
+        if len(manifest) > rc.MANIFEST_MAX_BYTES:
+            raise ValueError("candidate manifest is too large")
+        ctx = installer_context(tag, rel, manifest)
+        pr = _submit(ctx)
+    except (ValueError, OSError, KeyError, TypeError) as exc:
+        sys.exit(f"winget: {exc}")
     print("PR:", pr["html_url"])
-    auto_answer(pr, ctx)
+    if pr.get("state") == "open":
+        auto_answer(pr, ctx)
 
 
 if __name__ == "__main__":
