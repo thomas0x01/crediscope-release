@@ -120,6 +120,10 @@ jobs:
       - name: Install dependencies
         run: pip install --require-hashes -r src/crediscope-llm/requirements-runtime.lock
 
+      - name: Install parallel test runner
+        if: hashFiles('src/crediscope-llm/requirements-dev.txt') != ''
+        run: pip install --no-deps --require-hashes -r src/crediscope-llm/requirements-dev.txt
+
       - name: Install pdftotext (poppler)
         # mock LLM 端到端（tests/e2e/test_mock_full_analysis.py）真实跑提取管线
         run: bash "$GITHUB_WORKSPACE/scripts/ci_install_with_fallback.sh" poppler
@@ -162,7 +166,12 @@ jobs:
 
       - name: Run tests
         working-directory: src/crediscope-llm
-        run: python -m pytest tests -q
+        run: |
+          if python -c "import xdist" 2>/dev/null; then
+            python -m pytest tests -n auto --dist loadfile -q
+          else
+            python -m pytest tests -q
+          fi
 
       # 浏览器冒烟（pw-smoke，2026-09-10）：chromium 真浏览器跑三件——
       # 连通性巡检（Origin/Host 守卫误杀自家请求的 SEC-1 回归哨兵）、
